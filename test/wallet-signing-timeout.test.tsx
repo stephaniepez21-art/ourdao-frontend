@@ -145,7 +145,7 @@ describe('Issue #221 — Bounded signature request & cancellation', () => {
     expect(writeHook?.isPending).toBe(false)
     expect(writeHook?.isRetryable).toBe(true)
   })
-});
+})
 
 function TestSignHarness({ onRender }: { onRender: (w: ReturnType<typeof useWallet>) => void }) {
   const wallet = useWallet()
@@ -180,7 +180,9 @@ describe('Issue #599 — signXDR clears its timeout timer and abort listener on 
     vi.mocked(freighter.signTransaction).mockResolvedValue({ signedTxXdr: 'SIGNED_XDR' } as never)
 
     let wallet: ReturnType<typeof useWallet> | undefined
-    renderWalletOnly((w) => { wallet = w })
+    renderWalletOnly((w) => {
+      wallet = w
+    })
 
     await waitFor(() => expect(wallet?.address).toBe('ACCOUNT_SIGNER'))
 
@@ -197,7 +199,9 @@ describe('Issue #599 — signXDR clears its timeout timer and abort listener on 
     vi.mocked(freighter.signTransaction).mockResolvedValue({ signedTxXdr: 'SIGNED_XDR' } as never)
 
     let wallet: ReturnType<typeof useWallet> | undefined
-    renderWalletOnly((w) => { wallet = w })
+    renderWalletOnly((w) => {
+      wallet = w
+    })
 
     await waitFor(() => expect(wallet?.address).toBe('ACCOUNT_SIGNER'))
 
@@ -215,7 +219,9 @@ describe('Issue #599 — signXDR clears its timeout timer and abort listener on 
     vi.mocked(freighter.signTransaction).mockReturnValue(new Promise(() => {}))
 
     let wallet: ReturnType<typeof useWallet> | undefined
-    renderWalletOnly((w) => { wallet = w })
+    renderWalletOnly((w) => {
+      wallet = w
+    })
 
     await waitFor(() => expect(wallet?.address).toBe('ACCOUNT_SIGNER'))
 
@@ -236,7 +242,9 @@ describe('Issue #599 — signXDR clears its timeout timer and abort listener on 
     vi.mocked(freighter.signTransaction).mockReturnValue(new Promise(() => {}))
 
     let wallet: ReturnType<typeof useWallet> | undefined
-    renderWalletOnly((w) => { wallet = w })
+    renderWalletOnly((w) => {
+      wallet = w
+    })
 
     await waitFor(() => expect(wallet?.address).toBe('ACCOUNT_SIGNER'))
 
@@ -253,4 +261,4 @@ describe('Issue #599 — signXDR clears its timeout timer and abort listener on 
     await assertion
     expect(vi.getTimerCount()).toBe(0)
   })
-});
+})

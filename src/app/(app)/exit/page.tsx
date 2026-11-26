@@ -28,7 +28,7 @@ export default function ExitPage() {
   // unknown would show and withdraw an amount we cannot vouch for (#486).
   const { stake: myStake } = useStake()
   const stakeKnown = myStake !== null
-  
+
   // Calculate share balance and exit amounts (#568)
   const shareBalance = userData.member?.shareBalance ?? null
   const shareKnown = shareBalance !== null
@@ -207,7 +207,9 @@ export default function ExitPage() {
                     Your proportional share of the treasury
                   </p>
                 </div>
-                <p className="text-foreground text-lg font-semibold">{formatToken(shareBalance)}</p>
+                <p className="text-foreground text-lg font-semibold">
+                  {formatToken(shareBalance ?? BigInt(0))}
+                </p>
               </div>
 
               <div className="bg-muted flex items-center justify-between rounded-lg p-4">
@@ -301,7 +303,7 @@ export default function ExitPage() {
                   Share balance unavailable. Unable to calculate your exit amount.
                 </p>
               )}
-              
+
               {hasActiveLoan && (
                 <p className="text-center text-xs text-amber-600 dark:text-amber-400">
                   You must repay your active loan before exiting.

@@ -68,7 +68,9 @@ describe('next.config image remotePatterns for IPFS gateways (#245)', () => {
 
     expect(nextConfig.images).toEqual({
       formats: ['image/avif', 'image/webp'],
-      remotePatterns: [{ protocol: 'https', hostname: 'gateway.pinata.cloud', pathname: '/ipfs/**' }],
+      remotePatterns: [
+        { protocol: 'https', hostname: 'gateway.pinata.cloud', pathname: '/ipfs/**' },
+      ],
     })
   })
 })

@@ -22,7 +22,7 @@ module.exports = {
       startServerCommand: 'npm run start',
       startServerReadyPattern: 'Ready in',
       startServerReadyTimeout: 30000,
-      url: Object.keys(routes).map(route => urlPrefix + route),
+      url: Object.keys(routes).map((route) => urlPrefix + route),
       numberOfRuns: 3,
       settings: { throttlingMethod: 'simulate' },
     },
@@ -30,7 +30,10 @@ module.exports = {
       assertMatrix: [
         {
           assertions: {
-            'largest-contentful-paint': ['warn', { maxNumericValue: 3000, aggregationMethod: 'median' }],
+            'largest-contentful-paint': [
+              'warn',
+              { maxNumericValue: 3000, aggregationMethod: 'median' },
+            ],
             'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
             'total-blocking-time': ['warn', { maxNumericValue: 300, aggregationMethod: 'median' }],
             'first-contentful-paint': ['warn', { maxNumericValue: 2000 }],
@@ -49,7 +52,10 @@ module.exports = {
           assertions: {
             'largest-contentful-paint': [
               'error',
-              { maxNumericValue: Math.ceil((median * 1.15) / 100) * 100, aggregationMethod: 'optimistic' },
+              {
+                maxNumericValue: Math.ceil((median * 1.15) / 100) * 100,
+                aggregationMethod: 'optimistic',
+              },
             ],
           },
         })),

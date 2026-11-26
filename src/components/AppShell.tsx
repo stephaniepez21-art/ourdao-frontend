@@ -123,7 +123,7 @@ const STREAM_STATUS_TEXT = {
 function LiveConnectionStatus() {
   const status = useStreamStatus()
   return (
-    <span role="status" aria-live="polite" className="text-xs text-muted-foreground">
+    <span role="status" aria-live="polite" className="text-muted-foreground text-xs">
       <span className="sr-only">Live updates: </span>
       {STREAM_STATUS_TEXT[status]}
     </span>
@@ -150,13 +150,13 @@ function ContractVersionBanner() {
   return (
     <div
       data-testid="contract-version-mismatch-banner"
-      className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300 sm:px-6"
+      className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 sm:px-6 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300"
     >
       <TriangleAlert className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
       <span>
-        Contract version mismatch: the deployment reports <strong className="font-mono">{version}</strong> but
-        the frontend was built against <strong className="font-mono">{pinned}</strong>. Some features may not
-        work as expected.
+        Contract version mismatch: the deployment reports{' '}
+        <strong className="font-mono">{version}</strong> but the frontend was built against{' '}
+        <strong className="font-mono">{pinned}</strong>. Some features may not work as expected.
       </span>
       <button
         type="button"
@@ -219,6 +219,7 @@ export function AppShell({ children }: AppShellProps) {
             </SheetTrigger>
             <BrandMark />
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <LiveConnectionStatus />
               <NetworkBadge />
               <ThemeToggle />
               <NotificationCenter />
@@ -260,6 +261,8 @@ export function AppShell({ children }: AppShellProps) {
             </span>
           </div>
         )}
+
+        <ContractVersionBanner />
 
         {stats.isPaused && (
           <div

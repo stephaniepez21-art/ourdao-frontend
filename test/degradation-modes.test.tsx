@@ -157,7 +157,9 @@ describe('degradation mode: backend unreachable', () => {
     mockGetEvents.mockRejectedValue(new Error('fetch failed'))
     renderWithProviders(<DashboardPage />)
 
-    expect(await screen.findByTestId('load-error')).toHaveTextContent("Couldn't load recent activity")
+    expect(await screen.findByTestId('load-error')).toHaveTextContent(
+      "Couldn't load recent activity"
+    )
     expect(screen.queryByText(/No recent activity/)).not.toBeInTheDocument()
     // Confirm no throw crashed the render — the member status card (which
     // only depends on direct contract reads, not the backend) is present.

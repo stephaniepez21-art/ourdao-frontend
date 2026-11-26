@@ -67,7 +67,7 @@ vi.mock('@/lib/dao-client', () => ({
     calculateExitShare: vi.fn().mockResolvedValue(null),
     getTreasuryProposal: (...a: unknown[]) => mockGetTreasuryProposal(...a),
     hasVoted: (...a: unknown[]) => mockHasVoted(...a),
-    getDocument: vi.fn().mockResolvedValue(null),
+    getDocument: (...a: unknown[]) => mockGetDocument(...a),
     getToken: vi.fn().mockResolvedValue('CTOKEN'),
     getTotalMembers: vi.fn().mockResolvedValue(10),
     getActiveMembers: vi.fn().mockResolvedValue(8),
@@ -105,6 +105,7 @@ describe('TreasuryProposalDetailPage (/treasury/[id])', () => {
     vi.clearAllMocks()
     mockIsMember.mockResolvedValue(true)
     mockHasVoted.mockResolvedValue(false)
+    mockIsPaused.mockResolvedValue(false)
     mockGetDocument.mockResolvedValue(null)
   })
 
@@ -319,22 +320,22 @@ describe('TreasuryProposalDetailPage (/treasury/[id])', () => {
     })
   })
 
-  describe('private commit-reveal salt backup (#546)', () => {
-    // Raw contract shape (see treasuryProposalSchema): the mapper reads
-    // `private`, `for_votes`, `against_votes`, not the UI field names.
-    const privateProposal = {
-      id: 42,
-      proposer: 'GPROPOSER',
-      destination: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
-      reason: 'Treasury Proposal #42',
-      amount: '50000000',
-      status: 'Pending',
-      for_votes: '0',
-      against_votes: '0',
-      created_at: 0,
-      private: true,
-    }
+  // Raw contract shape (see treasuryProposalSchema): the mapper reads
+  // `private`, `for_votes`, `against_votes`, not the UI field names.
+  const privateProposal = {
+    id: 42,
+    proposer: 'GPROPOSER',
+    destination: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
+    reason: 'Treasury Proposal #42',
+    amount: '50000000',
+    status: 'Pending',
+    for_votes: '0',
+    against_votes: '0',
+    created_at: 0,
+    private: true,
+  }
 
+  describe('private commit-reveal salt backup (#546)', () => {
     beforeEach(() => {
       localStorage.clear()
     })
@@ -342,7 +343,7 @@ describe('TreasuryProposalDetailPage (/treasury/[id])', () => {
     // #519: the commit transaction must not be sendable until the salt backup
     // has been downloaded.
     it('keeps the commit button disabled until the salt backup is downloaded', async () => {
-      const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:salt-backup')
+      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:salt-backup')
       vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
       vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
       mockGetTreasuryProposal.mockResolvedValue(privateProposal)
@@ -435,6 +436,8 @@ describe('TreasuryProposalDetailPage (/treasury/[id])', () => {
       expect(viewLink).not.toBeNull()
       expect(viewLink).toHaveAttribute('href', `https://a.example/ipfs/${testCid}`)
       expect(viewLink?.getAttribute('href')).toMatch(/^https:\/\/a\.example\/ipfs\//)
+    })
+
     it('backs up the exact salt used to compute the on-chain commitment and calls generateCommitment once', async () => {
       mockGetTreasuryProposal.mockResolvedValue(privateProposal)
 
@@ -454,7 +457,9 @@ describe('TreasuryProposalDetailPage (/treasury/[id])', () => {
         renderWithProviders(<TreasuryProposalDetailPage />)
 
         fireEvent.click(await screen.findByRole('button', { name: /Commit FOR/i }))
-        fireEvent.click(await screen.findByRole('button', { name: /Step 1: Download salt backup/i }))
+        fireEvent.click(
+          await screen.findByRole('button', { name: /Step 1: Download salt backup/i })
+        )
         fireEvent.click(await screen.findByRole('button', { name: /Step 2: Commit Vote/i }))
 
         await waitFor(() => {
@@ -479,7 +484,7 @@ describe('TreasuryProposalDetailPage (/treasury/[id])', () => {
         expect(backupJson.address).toBe('GALICE')
 
         const backedUpSalt = new Uint8Array(
-          (backupJson.salt.match(/.{1,2}/g) || []).map((byte) => parseInt(byte, 16)),
+          (backupJson.salt.match(/.{1,2}/g) || []).map((byte) => parseInt(byte, 16))
         )
         expect(backedUpSalt).toHaveLength(32)
 

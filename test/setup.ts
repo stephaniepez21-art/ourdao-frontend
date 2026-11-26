@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
+import { webcrypto } from 'node:crypto'
 import { cleanup } from '@testing-library/react'
 
 process.env.NEXT_PUBLIC_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
@@ -14,6 +15,19 @@ process.env.NEXT_PUBLIC_IPFS_GATEWAY =
 afterEach(() => {
   cleanup()
 })
+
+// jsdom's Crypto only implements getRandomValues, so commit-reveal code that
+// hashes with WebCrypto would throw. Node's webcrypto is a drop-in replacement.
+if (typeof window !== 'undefined' && !window.crypto.subtle) {
+  Object.defineProperty(window, 'crypto', { value: webcrypto, configurable: true })
+}
+
+// jsdom implements `window.confirm` as a no-op that returns undefined, so any
+// flow guarded by a confirmation dialog would silently do nothing. Tests that
+// exercise the "declined" branch override this per test with mockReturnValue(false).
+if (typeof window !== 'undefined') {
+  window.confirm = vi.fn(() => true)
+}
 
 // jsdom doesn't implement matchMedia. src/lib/responsive.ts's useScreenSize
 // (used by several pages via useIsMobile/useResponsiveCardLayout) calls it

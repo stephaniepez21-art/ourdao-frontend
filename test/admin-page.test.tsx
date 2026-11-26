@@ -326,7 +326,9 @@ describe('AdminPage', () => {
       renderWithProviders(<AdminPage />)
       await waitFor(() => expect(screen.getByText('Admin Dashboard')).toBeInTheDocument())
       fireEvent.click(screen.getByRole('button', { name: /Quarantined Events/ }))
-      await waitFor(() => expect(screen.getByText('Quarantined / Failed Events')).toBeInTheDocument())
+      await waitFor(() =>
+        expect(screen.getByText('Quarantined / Failed Events')).toBeInTheDocument()
+      )
       await waitFor(() =>
         expect(screen.queryByText('Loading quarantined events…')).not.toBeInTheDocument()
       )

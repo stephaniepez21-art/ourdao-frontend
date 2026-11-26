@@ -319,7 +319,9 @@ describe('write-hook query invalidation', () => {
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries')
 
     let latest: ReturnType<typeof useCancelProposal> | undefined
-    renderWithClient(client, useCancelProposal, (h) => { latest = h })
+    renderWithClient(client, useCancelProposal, (h) => {
+      latest = h
+    })
 
     await act(async () => {
       await latest!.cancelLoanProposal(9)
@@ -338,7 +340,9 @@ describe('write-hook query invalidation', () => {
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries')
 
     let latest: ReturnType<typeof useExpireProposal> | undefined
-    renderWithClient(client, useExpireProposal, (h) => { latest = h })
+    renderWithClient(client, useExpireProposal, (h) => {
+      latest = h
+    })
 
     await act(async () => {
       await latest!.expireTreasuryProposal(10)
@@ -357,8 +361,12 @@ describe('write-hook query invalidation', () => {
 
     let execute: ReturnType<typeof useExecuteTreasuryProposal> | undefined
     let disburse: ReturnType<typeof useDisburseLoan> | undefined
-    renderWithClient(client, useExecuteTreasuryProposal, (h) => { execute = h })
-    renderWithClient(client, useDisburseLoan, (h) => { disburse = h })
+    renderWithClient(client, useExecuteTreasuryProposal, (h) => {
+      execute = h
+    })
+    renderWithClient(client, useDisburseLoan, (h) => {
+      disburse = h
+    })
 
     await act(async () => {
       await execute!.executeTreasuryProposal(11)

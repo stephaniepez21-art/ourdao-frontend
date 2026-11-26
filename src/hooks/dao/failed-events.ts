@@ -56,9 +56,7 @@ export function useReEvaluateFailedEvent() {
         const outcome = await backend.reEvaluateFailedEvent(id, { address, signMessage })
         setResult(outcome)
         await Promise.all(
-          FAILED_EVENT_QUERY_KEYS.map((queryKey) =>
-            queryClient.invalidateQueries({ queryKey })
-          )
+          FAILED_EVENT_QUERY_KEYS.map((queryKey) => queryClient.invalidateQueries({ queryKey }))
         )
         return outcome
       } catch (cause) {
@@ -111,9 +109,7 @@ export function useBatchResolveFailedEvents() {
         const outcome = { resolved }
         setResult(outcome)
         await Promise.all(
-          FAILED_EVENT_QUERY_KEYS.map((queryKey) =>
-            queryClient.invalidateQueries({ queryKey })
-          )
+          FAILED_EVENT_QUERY_KEYS.map((queryKey) => queryClient.invalidateQueries({ queryKey }))
         )
         return outcome
       } catch (cause) {

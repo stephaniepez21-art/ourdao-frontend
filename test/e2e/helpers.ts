@@ -1,5 +1,12 @@
 import { type Page } from '@playwright/test'
-import { Keypair, nativeToScVal, SorobanDataBuilder, Transaction, TransactionBuilder, xdr } from '@stellar/stellar-sdk'
+import {
+  Keypair,
+  nativeToScVal,
+  SorobanDataBuilder,
+  Transaction,
+  TransactionBuilder,
+  xdr,
+} from '@stellar/stellar-sdk'
 
 export const MOCK_WALLET_ADDRESS = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
 
@@ -189,7 +196,9 @@ export async function setupMockRpcAndBackend(
       case 'get_loan_policy':
         return { membership_contribution: BigInt(10_000_000), max_loan_to_treasury_ratio: 5_000 }
       case 'get_member':
-        return isMember ? { status: 'ActiveMember', has_active_loan: options.hasActiveLoan ?? false } : null
+        return isMember
+          ? { status: 'ActiveMember', has_active_loan: options.hasActiveLoan ?? false }
+          : null
       case 'is_member':
       case 'is_eligible_for_loan':
         return isMember
@@ -257,7 +266,11 @@ export async function setupMockRpcAndBackend(
       })
     }
 
-    if (url.includes('/api/loans') || url.includes('/api/notifications') || url.includes('/api/events')) {
+    if (
+      url.includes('/api/loans') ||
+      url.includes('/api/notifications') ||
+      url.includes('/api/events')
+    ) {
       return route.fulfill({ json: [] })
     }
 
@@ -290,11 +303,13 @@ export async function setupMockRpcAndBackend(
       case 'getLedgerEntries':
         return respond({
           latestLedger: 1000,
-          entries: [{
-            key: accountKey.toXdr('base64'),
-            xdr: xdr.LedgerEntryData.account(mockAccount).toXdr('base64'),
-            lastModifiedLedgerSeq: 1000,
-          }],
+          entries: [
+            {
+              key: accountKey.toXdr('base64'),
+              xdr: xdr.LedgerEntryData.account(mockAccount).toXdr('base64'),
+              lastModifiedLedgerSeq: 1000,
+            },
+          ],
         })
       case 'simulateTransaction': {
         const result = simulationResult(contractMethod(params!.transaction!))

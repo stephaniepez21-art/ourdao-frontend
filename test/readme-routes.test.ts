@@ -44,14 +44,16 @@ function parseReadmeRoutesTable(): Map<string, string> {
 
   for (const row of rows) {
     const trimmed = row.trim()
-    if (!trimmed.startsWith('|') || trimmed.includes('|---|') || trimmed.includes('| Route |')) {
-      continue
-    }
+    if (!trimmed.startsWith('|')) continue
 
     const cols = trimmed
       .split('|')
       .map((c) => c.trim())
       .filter(Boolean)
+
+    // Skip the header row and the |---|---| separator, whose padding would
+    // otherwise make them look like route entries.
+    if (cols.length < 2 || cols[0] === 'Route' || /^-+$/.test(cols[0])) continue
 
     if (cols.length >= 2) {
       // cols[0] is like `/loans/[id]` or `/`
@@ -80,7 +82,7 @@ describe('README routes documentation (#590)', () => {
     for (const route of appRoutes) {
       expect(
         readmeRoutes.has(route),
-        `Route "${route}" from page.tsx is missing in README.md "Routes" table`,
+        `Route "${route}" from page.tsx is missing in README.md "Routes" table`
       ).toBe(true)
     }
   })

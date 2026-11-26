@@ -59,7 +59,10 @@ describe('AddressLink copy button', () => {
     expect(writeText).toHaveBeenCalledWith(ACCOUNT)
 
     expect(await screen.findByRole('button', { name: 'Address copied' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Address copied' })).toHaveAttribute('title', 'Copied')
+    expect(screen.getByRole('button', { name: 'Address copied' })).toHaveAttribute(
+      'title',
+      'Copied'
+    )
   })
 
   it('copies the full address even when the visible label is overridden', async () => {
@@ -77,7 +80,9 @@ describe('AddressLink copy button', () => {
     writeText.mockRejectedValue(new Error('Permission denied'))
     render(<AddressLink address={ACCOUNT} />)
 
-    expect(() => fireEvent.click(screen.getByRole('button', { name: 'Copy full address' }))).not.toThrow()
+    expect(() =>
+      fireEvent.click(screen.getByRole('button', { name: 'Copy full address' }))
+    ).not.toThrow()
 
     await waitFor(() => {
       expect(writeText).toHaveBeenCalledWith(ACCOUNT)
@@ -95,7 +100,9 @@ describe('AddressLink copy button', () => {
     Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true })
     render(<AddressLink address={ACCOUNT} />)
 
-    expect(() => fireEvent.click(screen.getByRole('button', { name: 'Copy full address' }))).not.toThrow()
+    expect(() =>
+      fireEvent.click(screen.getByRole('button', { name: 'Copy full address' }))
+    ).not.toThrow()
     await act(async () => {})
 
     expect(screen.getByRole('button', { name: 'Copy full address' })).toBeInTheDocument()
@@ -108,7 +115,10 @@ describe('AddressLink explorer link', () => {
 
     const link = screen.getByRole('link', { name: 'View on block explorer' })
     expect(link).toHaveAttribute('href', getAddressUrl(ACCOUNT))
-    expect(link).toHaveAttribute('href', `https://stellar.expert/explorer/testnet/account/${ACCOUNT}`)
+    expect(link).toHaveAttribute(
+      'href',
+      `https://stellar.expert/explorer/testnet/account/${ACCOUNT}`
+    )
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
   })

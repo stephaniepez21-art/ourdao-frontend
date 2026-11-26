@@ -1,10 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import {
-  useProposalFilters,
-  type FilterableProposal,
-} from '@/hooks/useProposalFilters'
+import { useProposalFilters, type FilterableProposal } from '@/hooks/useProposalFilters'
 
 // The hook reads its query state from the URL via next/navigation. That is the
 // framework/router boundary, not the app's data layer, so it is the only thing
@@ -32,10 +29,46 @@ function run<T extends FilterableProposal>(items: T[], query: Record<string, str
 const ids = (list: { id: number }[]) => list.map((p) => p.id)
 
 const proposals: FilterableProposal[] = [
-  { id: 1, status: 0, purpose: 'Buy equipment', title: 'Alpha', description: 'first', borrower: 'GBORROWER1', recipient: 'GRECIP1', amount: 100n },
-  { id: 2, status: 1, purpose: 'Rent space', title: 'Beta', description: 'second', borrower: 'GBORROWER2', recipient: 'GRECIP2', amount: 300n },
-  { id: 3, status: 1, purpose: 'Salary', title: 'Gamma', description: 'third', borrower: 'GOTHER', recipient: 'GRECIP3', amount: 200n },
-  { id: 12, status: 2, purpose: 'Marketing', title: 'Delta', description: 'twelfth', borrower: 'GZED', recipient: 'GTARGET', amount: 50n },
+  {
+    id: 1,
+    status: 0,
+    purpose: 'Buy equipment',
+    title: 'Alpha',
+    description: 'first',
+    borrower: 'GBORROWER1',
+    recipient: 'GRECIP1',
+    amount: 100n,
+  },
+  {
+    id: 2,
+    status: 1,
+    purpose: 'Rent space',
+    title: 'Beta',
+    description: 'second',
+    borrower: 'GBORROWER2',
+    recipient: 'GRECIP2',
+    amount: 300n,
+  },
+  {
+    id: 3,
+    status: 1,
+    purpose: 'Salary',
+    title: 'Gamma',
+    description: 'third',
+    borrower: 'GOTHER',
+    recipient: 'GRECIP3',
+    amount: 200n,
+  },
+  {
+    id: 12,
+    status: 2,
+    purpose: 'Marketing',
+    title: 'Delta',
+    description: 'twelfth',
+    borrower: 'GZED',
+    recipient: 'GTARGET',
+    amount: 50n,
+  },
 ]
 
 describe('useProposalFilters: status filter', () => {

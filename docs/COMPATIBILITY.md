@@ -54,6 +54,7 @@ Contract changes are fundamentally different from backend changes:
 - ABI drift is currently tracked in issue #143
 
 ### How the frontend finds out
+
 - Contract ABI is embedded in the frontend codebase (`src/lib/generated/dao-bindings.ts`)
 - New deployments require explicit frontend updates (`npm run gen:contract`)
 - CI verifies `src/lib/generated/dao-bindings.ts` against the pinned ref in `contract/interface.json` (`_last_verified`) on PRs/pushes, and runs a non-blocking daily schedule against `ourdao-contracts` `main` to surface upstream drift (#541)

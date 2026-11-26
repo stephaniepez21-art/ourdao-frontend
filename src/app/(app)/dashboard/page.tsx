@@ -15,7 +15,15 @@ import {
   ArrowUpRightIcon,
   TrophyIcon,
 } from '@/lib/icons'
-import { useDAOStats, useUserData, useRewards, useDAOEvents, useVotingWeight, eventLabel } from '@/hooks/useDAO'
+import {
+  useDAOStats,
+  useUserData,
+  useRewards,
+  useDAOEvents,
+  useVotingWeight,
+  useStatsHistory,
+  eventLabel,
+} from '@/hooks/useDAO'
 import { useRequireMember } from '@/hooks/useRequireMember'
 import { LoadError } from '@/components/LoadError'
 import { useAnnounceLoad } from '@/lib/useAnnounceLoad'
@@ -214,7 +222,9 @@ export default function DashboardPage() {
               <div className="text-right">
                 <div className="text-muted-foreground text-sm">Voting Weight</div>
                 <div className="text-foreground text-2xl font-bold">
-                  {userData.votingWeight ?? '—'}
+                  {contractWeight.isError
+                    ? 'Unavailable'
+                    : (contractWeight.votingWeight ?? userData.votingWeight ?? '—')}
                 </div>
               </div>
             </div>
@@ -433,6 +443,10 @@ export default function DashboardPage() {
           </Card>
         </div>
       </div>
+
+      <div className="mt-8">
+        <LoanActivityHistoryCard />
+      </div>
     </>
   )
 }
@@ -449,14 +463,14 @@ function LoanActivityHistoryCard() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-muted-foreground text-sm">Loading…</p>
         ) : isError ? (
           <LoadError what="loan activity history" onRetry={() => void refetch()} />
         ) : history.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border text-left text-muted-foreground">
+                <tr className="border-border text-muted-foreground border-b text-left">
                   <th className="py-2 pr-4 font-medium">Date</th>
                   <th className="py-2 pr-4 font-medium">Principal Lent</th>
                   <th className="py-2 pr-4 font-medium">Principal Repaid</th>
@@ -466,21 +480,26 @@ function LoanActivityHistoryCard() {
                 </tr>
               </thead>
               <tbody>
-                {history.slice(-30).reverse().map((day) => (
-                  <tr key={day.date} className="border-b border-border">
-                    <td className="py-2 pr-4 text-foreground">{day.date}</td>
-                    <td className="py-2 pr-4 text-muted-foreground">{day.principalLent}</td>
-                    <td className="py-2 pr-4 text-muted-foreground">{day.principalRepaid}</td>
-                    <td className="py-2 pr-4 text-muted-foreground">{day.defaults}</td>
-                    <td className="py-2 pr-4 text-muted-foreground">{day.valueDefaulted}</td>
-                    <td className="py-2 text-muted-foreground">{day.cumulativeDefaultRatePercent.toFixed(2)}%</td>
-                  </tr>
-                ))}
+                {history
+                  .slice(-30)
+                  .reverse()
+                  .map((day) => (
+                    <tr key={day.date} className="border-border border-b">
+                      <td className="text-foreground py-2 pr-4">{day.date}</td>
+                      <td className="text-muted-foreground py-2 pr-4">{day.principalLent}</td>
+                      <td className="text-muted-foreground py-2 pr-4">{day.principalRepaid}</td>
+                      <td className="text-muted-foreground py-2 pr-4">{day.defaults}</td>
+                      <td className="text-muted-foreground py-2 pr-4">{day.valueDefaulted}</td>
+                      <td className="text-muted-foreground py-2">
+                        {day.cumulativeDefaultRatePercent.toFixed(2)}%
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No historical data available</p>
+          <p className="text-muted-foreground text-sm">No historical data available</p>
         )}
       </CardContent>
     </Card>

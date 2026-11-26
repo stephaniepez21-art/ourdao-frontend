@@ -18,7 +18,9 @@ test.describe('E2E Smoke Tests', () => {
 
     // Verify main landing page elements are visible
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-    await expect(page.getByRole('banner').getByRole('button', { name: 'Connect Wallet', exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('banner').getByRole('button', { name: 'Connect Wallet', exact: true })
+    ).toBeVisible()
 
     // Verify navigation links
     const nav = page.getByRole('navigation')
@@ -29,7 +31,9 @@ test.describe('E2E Smoke Tests', () => {
     await setupE2ETest(page)
     await page.goto('/')
 
-    const connectBtn = page.getByRole('banner').getByRole('button', { name: 'Connect Wallet', exact: true })
+    const connectBtn = page
+      .getByRole('banner')
+      .getByRole('button', { name: 'Connect Wallet', exact: true })
     await expect(connectBtn).toBeVisible()
     await connectBtn.click()
 
@@ -50,7 +54,9 @@ test.describe('E2E Smoke Tests', () => {
     await page.goto('/register')
 
     // Step 1: Membership fee & benefits
-    await expect(page.getByRole('heading', { name: 'Welcome to OurDAO', exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Welcome to OurDAO', exact: true })
+    ).toBeVisible()
     const nextBtn = page.getByRole('button', { name: 'Next', exact: true })
     await expect(nextBtn).toBeVisible()
     await nextBtn.click()
@@ -66,7 +72,9 @@ test.describe('E2E Smoke Tests', () => {
     await registerBtn.click()
 
     // Verify successful registration banner or feedback
-    await expect(page.getByText('Registration successful! Welcome to the DAO!')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByText('Registration successful! Welcome to the DAO!')).toBeVisible({
+      timeout: 15_000,
+    })
     await expect(page).toHaveURL(/\/dashboard$/)
     await expect(page.getByRole('heading', { name: 'Member Dashboard' })).toBeVisible()
   })
@@ -102,7 +110,9 @@ test.describe('E2E Smoke Tests', () => {
     await submitBtn.click()
 
     // Check for success feedback
-    await expect(page.getByText('Loan request submitted successfully!', { exact: true })).toBeVisible({ timeout: 15_000 })
+    await expect(
+      page.getByText('Loan request submitted successfully!', { exact: true })
+    ).toBeVisible({ timeout: 15_000 })
     await expect(page).toHaveURL(/\/loans$/)
   })
 
@@ -124,7 +134,9 @@ test.describe('E2E Smoke Tests', () => {
     await voteBtn.click()
 
     // Wait for confirmation, so the optimistic voted state alone cannot pass.
-    await expect(page.getByRole('link', { name: 'View transaction' })).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('link', { name: 'View transaction' })).toBeVisible({
+      timeout: 15_000,
+    })
     await expect(page.getByText("You've voted", { exact: true })).toBeVisible()
     await expect(voteBtn).toHaveCount(0)
   })

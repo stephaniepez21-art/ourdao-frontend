@@ -1,7 +1,7 @@
 'use client'
 
-import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useMemo, useState } from 'react'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { useCallback, useMemo } from 'react'
 import { useWallet } from '@/lib/wallet'
 import { isContractConfigured } from '@/lib/stellar'
 import { daoRead } from '@/lib/dao-client'
@@ -23,13 +23,12 @@ import { useStreamPolling } from '@/hooks/useLiveEvents'
 /** All loan proposals (newest first), read live from the contract, paginated. */
 export function useLoanProposals() {
   const backendConfigured = isBackendConfigured()
+  const refetchInterval = useStreamPolling(backendConfigured)
   const {
     data: stats,
     isError: countError,
     refetch: refetchCount,
   } = useQuery({
-  const refetchInterval = useStreamPolling(backendConfigured)
-  const { data: stats, isError: countError, refetch: refetchCount } = useQuery({
     queryKey: queryKeys.backendStats(),
     enabled: backendConfigured,
     queryFn: ({ signal }) => backend.getStats({ signal }),
@@ -147,13 +146,12 @@ export function useLoan(id: number, enabled: boolean) {
 /** All treasury withdrawal proposals (newest first), read live from the contract, paginated. */
 export function useTreasuryProposals() {
   const backendConfigured = isBackendConfigured()
+  const refetchInterval = useStreamPolling(backendConfigured)
   const {
     data: stats,
     isError: countError,
     refetch: refetchCount,
   } = useQuery({
-  const refetchInterval = useStreamPolling(backendConfigured)
-  const { data: stats, isError: countError, refetch: refetchCount } = useQuery({
     queryKey: queryKeys.backendStats(),
     enabled: backendConfigured,
     queryFn: ({ signal }) => backend.getStats({ signal }),
@@ -366,83 +364,6 @@ export function useStatsHistory() {
     isError,
     refetch,
   }
-}
-
-/** Re-evaluate a single quarantined event (#555). Requires a signed
- *  StellarSignature header — the signer is the connected wallet. */
-export function useReevaluateFailedEvent() {
-  const { address, signMessage } = useWallet()
-  const queryClient = useQueryClient()
-  const [isPending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const reevaluate = useCallback(
-    async (id: number | string): Promise<boolean> => {
-      if (!address || !signMessage) {
-        setError('Connect your wallet first')
-        return false
-      }
-      setPending(true)
-      setError(null)
-      try {
-        const result = await serializePerAddress(address, () =>
-          backend.reevaluateFailedEvent(id, { address, signMessage })
-        )
-        if (!result.ok) {
-          setError(result.message)
-          return false
-        }
-        void queryClient.invalidateQueries({ queryKey: queryKeys.failedEvents() })
-        void queryClient.invalidateQueries({ queryKey: queryKeys.auditLog(100) })
-        return true
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not re-evaluate event')
-        return false
-      } finally {
-        setPending(false)
-      }
-    },
-    [address, signMessage, queryClient]
-  )
-
-  return { reevaluate, isPending, error }
-}
-
-/** Batch-resolve all quarantined events (#555). Requires a signed
- *  StellarSignature header — the signer is the connected wallet. */
-export function useBatchResolveFailedEvents() {
-  const { address, signMessage } = useWallet()
-  const queryClient = useQueryClient()
-  const [isPending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const batchResolve = useCallback(async (): Promise<boolean> => {
-    if (!address || !signMessage) {
-      setError('Connect your wallet first')
-      return false
-    }
-    setPending(true)
-    setError(null)
-    try {
-      const result = await serializePerAddress(address, () =>
-        backend.batchResolveFailedEvents({ address, signMessage })
-      )
-      if (!result.ok) {
-        setError(result.message)
-        return false
-      }
-      void queryClient.invalidateQueries({ queryKey: queryKeys.failedEvents() })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.auditLog(100) })
-      return true
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not batch-resolve events')
-      return false
-    } finally {
-      setPending(false)
-    }
-  }, [address, signMessage, queryClient])
-
-  return { batchResolve, isPending, error }
 }
 
 export function useDocumentHistory(kind: 'loan' | 'treasury' | string, proposalId: number) {

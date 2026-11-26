@@ -42,7 +42,12 @@ describe('openEventStream', () => {
     openEventStream({ onEvent: vi.fn() })
     const source = FakeEventSource.instances[0]!
     expect(source.url).toBe(`${CONFIGURED_URL}/api/stream`)
-    expect([...source.listeners.keys()].sort()).toEqual(['error', 'heartbeat', 'notification', 'resync'])
+    expect([...source.listeners.keys()].sort()).toEqual([
+      'error',
+      'heartbeat',
+      'notification',
+      'resync',
+    ])
     expect(source.onmessage).toBeNull()
   })
 

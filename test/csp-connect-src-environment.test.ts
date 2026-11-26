@@ -3,7 +3,9 @@ import { buildCspWithNonce } from '@/proxy'
 
 /** The connect-src directive of the policy built for a request. */
 const connectSrc = (): string => {
-  const directive = buildCspWithNonce('test-nonce').split('; ').find((d) => d.startsWith('connect-src '))
+  const directive = buildCspWithNonce('test-nonce')
+    .split('; ')
+    .find((d) => d.startsWith('connect-src '))
   if (!directive) throw new Error('connect-src directive missing')
   return directive
 }

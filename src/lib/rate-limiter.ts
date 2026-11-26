@@ -58,7 +58,11 @@ function storeTimestamps(store: Map<string, number[]>, key: string, timestamps: 
 
 function sweepStore(store: Map<string, number[]>, windowMs: number, now: number): void {
   for (const [key, timestamps] of store) {
-    storeTimestamps(store, key, timestamps.filter((ts) => now - ts < windowMs))
+    storeTimestamps(
+      store,
+      key,
+      timestamps.filter((ts) => now - ts < windowMs)
+    )
   }
 }
 
@@ -123,9 +127,7 @@ export function checkRateLimit(req: NextRequest): RateLimitResult {
   }
 
   // Check per-IP rate limit
-  const ipTimestamps = (ipStore.get(ip) || []).filter(
-    (ts) => now - ts < config.ipWindowMs
-  )
+  const ipTimestamps = (ipStore.get(ip) || []).filter((ts) => now - ts < config.ipWindowMs)
   storeTimestamps(ipStore, ip, ipTimestamps)
 
   if (ipTimestamps.length >= config.ipMaxRequests) {

@@ -45,6 +45,7 @@ report can name the entry below it came from. See
 - Upgraded `@stellar/stellar-sdk` to `^17.1.0` and added migration plan and testnet smoke verification checklist (#383).
 
 ### Fixed
+
 - The IPFS CID field on the loan page has an accessible name, so screen readers announce its purpose after typing (#583).
 - Keyboard users can focus and open the treasury salt backup picker, and assistive technologies can identify the document encryption and decryption password fields (#584, #585, #586).
 - Test suite: the contract-id fixture is generated with `StrKey.encodeContract` (#537); partial `@/lib/stellar` mocks spread `importOriginal()` (#538); `error-reporting.test.ts` runs in jsdom (#539). A signature cancelled before the wallet prompt opens now aborts instead of hanging.

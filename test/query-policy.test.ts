@@ -45,6 +45,8 @@ describe('query key factory', () => {
       ['userLoans'],
       ['hasVoted'],
       ['stake'],
+      ['delegate'],
+      ['votingWeight'],
       ['document'],
       ['notifications'],
       ['tokenBalance'],

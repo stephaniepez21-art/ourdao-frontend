@@ -35,7 +35,11 @@ import { LoadError } from '@/components/LoadError'
 import { useAnnounceLoad } from '@/lib/useAnnounceLoad'
 import { formatToken, formatThreshold } from '@/lib/utils'
 import { AddressLink } from '@/components/AddressLink'
-import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_AWAITING_FUNDS, GOVERNANCE_PERIOD_FALLBACKS } from '@/constants'
+import {
+  PROPOSAL_STATUS_LABELS,
+  PROPOSAL_STATUS_AWAITING_FUNDS,
+  GOVERNANCE_PERIOD_FALLBACKS,
+} from '@/constants'
 import { VirtualizedList } from '@/components/ui/virtualized-list'
 import { useNow } from '@/hooks/useNow'
 
@@ -162,7 +166,12 @@ function LoanProposalRow({
         )}
         {canVote && p.status === 2 && hasVoted && <AlreadyVotedLabel />}
         {canFinalize && (
-          <Button size="sm" variant="outline" disabled={finalizing} onClick={() => onFinalize(p.id)}>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={finalizing}
+            onClick={() => onFinalize(p.id)}
+          >
             Finalize
           </Button>
         )}
@@ -232,7 +241,12 @@ function TreasuryProposalRow({
         )}
         {canVote && p.status === 2 && !p.isPrivate && hasVoted && <AlreadyVotedLabel />}
         {canFinalize && (
-          <Button size="sm" variant="outline" disabled={finalizing} onClick={() => onFinalize(p.id)}>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={finalizing}
+            onClick={() => onFinalize(p.id)}
+          >
             Finalize
           </Button>
         )}

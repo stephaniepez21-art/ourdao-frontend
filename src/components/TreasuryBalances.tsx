@@ -11,8 +11,7 @@ export interface TreasuryBalance {
 }
 
 export function TreasuryBalances() {
-  const { tokens, isLoading: tokensLoading, isError: tokensError } =
-    useWhitelistedTokens()
+  const { tokens, isLoading: tokensLoading, isError: tokensError } = useWhitelistedTokens()
 
   if (tokensError) {
     return <div className="text-red-500">Failed to load treasury balances</div>
@@ -30,7 +29,7 @@ export function TreasuryBalances() {
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Treasury Balances</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {tokens.map((token) => (
           <TreasuryBalanceCard key={token.tokenId} tokenId={token.tokenId} />
         ))}
@@ -40,20 +39,19 @@ export function TreasuryBalances() {
 }
 
 function TreasuryBalanceCard({ tokenId }: { tokenId: string }) {
-  const { symbol, balance, format, isLoading, isError } =
-    useAssetBalance(tokenId)
+  const { symbol, balance, format, isLoading, isError } = useAssetBalance(tokenId)
 
   if (isError) {
     return (
-      <div className="border rounded-lg p-4 bg-red-50">
+      <div className="rounded-lg border bg-red-50 p-4">
         <div className="text-sm text-red-600">Failed to load balance</div>
       </div>
     )
   }
 
   return (
-    <div className="border rounded-lg p-4 bg-white">
-      <div className="flex justify-between items-start">
+    <div className="rounded-lg border bg-white p-4">
+      <div className="flex items-start justify-between">
         <div>
           <div className="text-sm text-gray-600">Asset</div>
           <div className="text-lg font-semibold">{symbol || 'Loading...'}</div>

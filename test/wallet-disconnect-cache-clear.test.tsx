@@ -63,7 +63,8 @@ function TestHarness({ onRender }: { onRender: (w: ReturnType<typeof useWallet>)
   // Set up test queries for member-specific data
   const userDataQuery = useQuery({
     queryKey: queryKeys.userData(wallet.address || ''),
-    queryFn: () => Promise.resolve({ name: wallet.address === 'ACCOUNT_A' ? 'Member A' : 'Member B' }),
+    queryFn: () =>
+      Promise.resolve({ name: wallet.address === 'ACCOUNT_A' ? 'Member A' : 'Member B' }),
     enabled: !!wallet.address,
   })
 
@@ -202,7 +203,9 @@ describe('disconnect() — wallet-scoped invalidation', () => {
 
     await waitFor(() => expect(latest?.address).toBeNull())
 
-    expect(invalidateSpy.mock.calls.map(([filters]) => filters?.queryKey)).toEqual(allWalletScopedQueryKeys())
+    expect(invalidateSpy.mock.calls.map(([filters]) => filters?.queryKey)).toEqual(
+      allWalletScopedQueryKeys()
+    )
     expect(qc.getQueryData(queryKeys.daoStats())).toEqual({ totalMembers: 10, totalProposals: 5 })
 
     // Verify no member-specific data is displayed

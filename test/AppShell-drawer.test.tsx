@@ -16,6 +16,7 @@ vi.mock('@/hooks/useDAO', () => ({
   useUserData: (): Partial<UserData> => ({ isAdmin: false }),
   useDAOStats: () => ({ indexerStale: false }),
   useVotingWeight: () => ({ votingWeight: 4, isLoading: false, isError: false, refetch: vi.fn() }),
+  useContractVersion: () => ({ version: null, isLoading: false, matches: () => true }),
 }))
 
 vi.mock('@/lib/stellar', async (importOriginal) => {

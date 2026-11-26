@@ -45,8 +45,7 @@ const mockNow = vi.hoisted(() => {
 vi.mock('@/hooks/useNow', async () => {
   const React = await vi.importActual<typeof import('react')>('react')
   return {
-    useNow: () =>
-      React.useSyncExternalStore(mockNow.subscribe, mockNow.getSnapshot, () => null),
+    useNow: () => React.useSyncExternalStore(mockNow.subscribe, mockNow.getSnapshot, () => null),
   }
 })
 

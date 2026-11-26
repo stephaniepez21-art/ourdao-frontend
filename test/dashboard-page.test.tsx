@@ -178,7 +178,7 @@ describe('DashboardPage', () => {
     renderWithProviders(<DashboardPage />)
 
     await waitFor(() =>
-      expect(screen.getByText('Voting Weight').nextElementSibling).toHaveTextContent(/^4$/),
+      expect(screen.getByText('Voting Weight').nextElementSibling).toHaveTextContent(/^4$/)
     )
     expect(mockGetVotingWeight).toHaveBeenCalledWith('GALICE')
   })
@@ -187,10 +187,9 @@ describe('DashboardPage', () => {
     mockGetVotingWeight.mockRejectedValue(new Error('rpc unavailable'))
     renderWithProviders(<DashboardPage />)
 
-    await waitFor(
-      () => expect(screen.getByText('Unavailable')).toBeInTheDocument(),
-      { timeout: 3000 },
-    )
+    await waitFor(() => expect(screen.getByText('Unavailable')).toBeInTheDocument(), {
+      timeout: 3000,
+    })
     expect(screen.getByText('Voting Weight').nextElementSibling).not.toHaveTextContent(/^0$/)
   })
 

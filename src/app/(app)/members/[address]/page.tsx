@@ -32,7 +32,7 @@ export default function MemberProfilePage() {
         />
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               This address has not joined the DAO. If you believe this is an error, the member may
               have exited or not yet registered.
             </p>
@@ -74,14 +74,14 @@ export default function MemberProfilePage() {
                   Joined: {summary?.joined_at ? formatDate(summary.joined_at) : 'Active'}
                 </p>
                 {overview?.name && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Name: <span className="font-medium text-foreground">{overview.name}</span>
+                  <p className="text-muted-foreground mt-0.5 text-xs">
+                    Name: <span className="text-foreground font-medium">{overview.name}</span>
                   </p>
                 )}
                 {overview?.delegate && overview.delegate !== address && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className="text-muted-foreground mt-0.5 text-xs">
                     Delegating to:{' '}
-                    <span className="font-mono font-medium text-foreground">
+                    <span className="text-foreground font-mono font-medium">
                       {formatStellarAddress(overview.delegate)}
                     </span>
                   </p>

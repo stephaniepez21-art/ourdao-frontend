@@ -679,7 +679,7 @@ export function WalletProvider({
         ])
         const { signedTxXdr, error } = readSigned(result)
         if (error || !signedTxXdr) {
-          throw new Error(error || 'Your wallet returned no signed transaction')
+          throw new Error(error || 'Freighter returned no signed transaction')
         }
         return signedTxXdr
       } finally {

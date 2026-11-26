@@ -59,7 +59,11 @@ const enumTag = z
   .unknown()
   .optional()
   .transform((value) => {
-    const tag = Array.isArray(value) ? value[0] : value
+    const tag = Array.isArray(value)
+      ? value[0]
+      : value && typeof value === 'object' && 'tag' in value
+        ? (value as { tag: unknown }).tag
+        : value
     return typeof tag === 'string' ? tag : ''
   })
 

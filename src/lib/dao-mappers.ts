@@ -31,7 +31,11 @@ export const asBigInt = (v: unknown): bigint => {
 
 // A Soroban unit-enum decodes as either a bare symbol string or a one-element
 // array of it; normalize both to a plain string tag.
-export const tag = (v: unknown): string => String(Array.isArray(v) ? v[0] : v)
+export const tag = (v: unknown): string => {
+  if (Array.isArray(v)) return String(v[0] ?? '')
+  if (v && typeof v === 'object' && 'tag' in v) return String((v as { tag: unknown }).tag ?? '')
+  return String(v ?? '')
+}
 
 // Map an indexed backend loan onto the frontend Loan shape. The indexer tracks
 // principal, outstanding balance and status; fields it doesn't yet index
@@ -564,10 +568,7 @@ export function mapDaoSummary(raw: Record<string, unknown>): DaoSummary {
 }
 
 /** Map the raw contract `get_member_overview` response onto `MemberOverview`. */
-export function mapMemberOverview(
-  address: string,
-  raw: Record<string, unknown>,
-): MemberOverview {
+export function mapMemberOverview(address: string, raw: Record<string, unknown>): MemberOverview {
   return {
     address,
     status: toMemberStatus(raw['status']),

@@ -6,6 +6,7 @@
  * dependency.
  */
 
+import { describe, expect, it, test } from 'vitest'
 import { loanStatusCode, mapLoan } from '@/lib/dao-mappers'
 import {
   PROPOSAL_STATUS_AWAITING_FUNDS,
@@ -15,10 +16,7 @@ import {
 
 // ── loanStatusCode ────────────────────────────────────────────────────────────
 
-function makeRaw(
-  status: string,
-  phase: string,
-): Record<string, unknown> {
+function makeRaw(status: string, phase: string): Record<string, unknown> {
   return {
     status: { tag: status },
     phase: { tag: phase },
@@ -27,22 +25,19 @@ function makeRaw(
 
 describe('loanStatusCode: ProposalStatus → numeric code', () => {
   const cases: [string, string, number][] = [
-    ['Approved',                     'Voting',   3],
-    ['ApprovedPendingDisbursement',  'Voting',   PROPOSAL_STATUS_AWAITING_FUNDS],
-    ['Executed',                     'Voting',   5],
-    ['Rejected',                     'Voting',   4],
-    ['Pending',                      'Expired',  4],  // Expired phase → rejected/expired code
-    ['Pending',                      'Voting',   2],
-    ['Pending',                      'Editing',  1],
-    ['Pending',                      'Unknown',  0],
+    ['Approved', 'Voting', 3],
+    ['ApprovedPendingDisbursement', 'Voting', PROPOSAL_STATUS_AWAITING_FUNDS],
+    ['Executed', 'Voting', 5],
+    ['Rejected', 'Voting', 4],
+    ['Pending', 'Expired', 4], // Expired phase → rejected/expired code
+    ['Pending', 'Voting', 2],
+    ['Pending', 'Editing', 1],
+    ['Pending', 'Unknown', 0],
   ]
 
-  test.each(cases)(
-    'status=%s phase=%s → %i',
-    (status, phase, expected) => {
-      expect(loanStatusCode(makeRaw(status, phase))).toBe(expected)
-    },
-  )
+  test.each(cases)('status=%s phase=%s → %i', (status, phase, expected) => {
+    expect(loanStatusCode(makeRaw(status, phase))).toBe(expected)
+  })
 })
 
 // ── mapLoan ───────────────────────────────────────────────────────────────────
@@ -52,10 +47,10 @@ function makeLoanRaw(overrides: Record<string, unknown> = {}): Record<string, un
     id: 1,
     borrower: 'GBORROWER',
     principal: BigInt(1000_0000000),
-    interest_rate: 500,            // 5 % in bps
+    interest_rate: 500, // 5 % in bps
     total_repayment: BigInt(1050_0000000),
     start_time: 1_700_000_000,
-    due_time: 1_700_000_000 + 30 * 86_400,  // 30 days
+    due_time: 1_700_000_000 + 30 * 86_400, // 30 days
     status: { tag: 'Active' },
     amount_repaid: BigInt(0),
     ...overrides,
@@ -70,7 +65,9 @@ describe('mapLoan: disbursed loan status derivation', () => {
   })
 
   it('Repaid loan → status Repaid', () => {
-    const result = mapLoan(makeLoanRaw({ status: { tag: 'Repaid' }, amount_repaid: BigInt(1050_0000000) }))
+    const result = mapLoan(
+      makeLoanRaw({ status: { tag: 'Repaid' }, amount_repaid: BigInt(1050_0000000) })
+    )
     expect(result.status).toBe('Repaid')
     expect(result.amountRepaid).toBe(BigInt(1050_0000000))
   })
@@ -89,7 +86,7 @@ describe('mapLoan: disbursed loan status derivation', () => {
     // Overdue detection is a UI concern; mapLoan only reflects what the
     // contract stored. Active + past due_time means the caller should call
     // markLoanDefaulted, but the status is still Active until they do.
-    const pastDue = 1_600_000_000  // well before start_time
+    const pastDue = 1_600_000_000 // well before start_time
     const result = mapLoan(makeLoanRaw({ due_time: pastDue, status: { tag: 'Active' } }))
     expect(result.status).toBe('Active')
     expect(result.dueTime).toBe(pastDue)

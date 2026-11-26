@@ -564,14 +564,6 @@ export function useMemberOverview(address?: string | null) {
 // #549 — useDelegate / useVotingWeight
 // ---------------------------------------------------------------------------
 
-export function useDelegate(address?: string | null) {
-  const enabled = isContractConfigured() && !!address
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: queryKeys.delegate(address ?? ''),
-    enabled,
-    queryFn: () => daoRead.getDelegate(address!),
-    staleTime: 30_000,
-    refetchIntervalInBackground: false,
 /**
  * The address `delegator` has delegated their vote to, or `null` when they have
  * not delegated. Reads `get_delegate` (#601).
@@ -585,16 +577,27 @@ export function useDelegate(delegator?: string | null) {
   return { delegate: data ?? null, isLoading, isError, refetch }
 }
 
-export function useVotingWeight(address?: string | null) {
-  const enabled = isContractConfigured() && !!address
-  const { data, isLoading, isError } = useQuery({
-    queryKey: queryKeys.votingWeight(address ?? ''),
-    enabled,
-    queryFn: () => daoRead.getVotingWeight(address!),
-    staleTime: 30_000,
-    refetchIntervalInBackground: false,
+// ---------------------------------------------------------------------------
+// #645 — on-chain contract version for the version-mismatch banner
+// ---------------------------------------------------------------------------
+
+export function useContractVersion() {
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.contractInfo(),
+    enabled: isContractConfigured(),
+    queryFn: () => daoRead.getContractInfo(),
+    retry: 2,
+    staleTime: Infinity,
+    gcTime: Infinity,
   })
-  return { votingWeight: data ?? null, isLoading, isError }
+
+  return {
+    version: data?.version || null,
+    isLoading,
+    matches: (expectedVersion: string) => data?.version === expectedVersion,
+  }
+}
+
 /**
  * The voting weight the contract reports for `member` (`get_voting_weight`).
  * `votingWeight` is `null` until the read lands and stays `null` on failure, so

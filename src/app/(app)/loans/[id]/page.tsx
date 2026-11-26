@@ -34,25 +34,10 @@ import {
   useAttachDocument,
   type UILoan,
 } from '@/hooks/useDAO'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from '@/components/ui/dialog'
 import { useNow } from '@/hooks/useNow'
 import { formatToken, formatDate, calculatePercentage, parseToken } from '@/lib/utils'
 import { AddressLink } from '@/components/AddressLink'
-import {
-  BASIS_POINTS,
-  PROPOSAL_STATUS_LABELS,
-  PROPOSAL_STATUS_AWAITING_FUNDS,
-  IPFS_GATEWAY,
-} from '@/constants'
+import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_AWAITING_FUNDS, IPFS_GATEWAY } from '@/constants'
 import toast from 'react-hot-toast'
 import { PageHeader } from '@/components/PageHeader'
 import { DocumentHistory } from '@/components/DocumentHistory'
@@ -65,7 +50,6 @@ export default function LoanDetailsPage() {
   const { activeMembers, isPaused, treasuryBalance, maxLoanToTreasuryRatio } = useDAOStats()
   const { voteOnProposal, isPending: isVoting } = useVoting()
   const { editLoanProposal, isPending: isEditing } = useEditLoanProposal()
-  const { cancelLoanProposal, isPending: isCancelling } = useCancelProposal()
   const { repayLoan, repayLoanPartial, isPending: isRepaying } = useLoanRepayment()
   const { markLoanDefaulted, isPending: isMarkingDefaulted } = useMarkLoanDefaulted()
   const { disburseApprovedLoan, isPending: isFunding } = useDisburseApprovedLoan()
@@ -235,7 +219,8 @@ export default function LoanDetailsPage() {
       !window.confirm(
         'Disbursing re-quotes the loan terms from the contract at execution time: the interest rate and repayment schedule may differ from this proposal. Continue?'
       )
-    ) return
+    )
+      return
     try {
       await disburseApprovedLoan(loanId)
       refetchProposal()
@@ -251,21 +236,12 @@ export default function LoanDetailsPage() {
   const disburseDisabledReason = (): string | null => {
     if (isPaused) return 'The DAO is paused'
     if (!proposal || !treasuryBalance) return null
-    if (treasuryBalance < proposal.amount) return 'Treasury balance is insufficient to cover this loan'
+    if (treasuryBalance < proposal.amount) return 'Treasury balance is too low to cover this loan'
     if (maxLoanToTreasuryRatio > 0) {
       const ratioMax = (treasuryBalance * BigInt(maxLoanToTreasuryRatio)) / BigInt(10000)
-      if (proposal.amount > ratioMax) return 'Loan amount exceeds the treasury ratio cap'
+      if (proposal.amount > ratioMax) return 'Loan amount would exceed the loan-to-treasury ratio'
     }
     return null
-  }
-
-  const handleCancelProposal = async () => {
-    try {
-      await cancelLoanProposal(loanId)
-      refetchProposal()
-    } catch {
-      /* reported by useWriteAction */
-    }
   }
 
   const getStatusIcon = (status: number) => {
@@ -339,18 +315,6 @@ export default function LoanDetailsPage() {
     if (!now || !proposal.editingPeriodEnd) return false
     return Math.floor(now / 1000) < proposal.editingPeriodEnd
   }
-
-  const fundingRatioCap =
-    (treasuryBalance * BigInt(maxLoanToTreasuryRatio)) / BigInt(BASIS_POINTS)
-  const canFundFromTreasury =
-    treasuryBalance >= proposal.amount && proposal.amount <= fundingRatioCap
-  const fundingDisabledReason = isPaused
-    ? 'The DAO is paused — funding is unavailable.'
-    : treasuryBalance < proposal.amount
-      ? 'Treasury balance is too low to fund this loan.'
-      : proposal.amount > fundingRatioCap
-        ? 'Funding this loan would exceed the loan-to-treasury ratio.'
-        : null
 
   const getEditingTimeLeft = () => {
     if (!now || !proposal?.editingPeriodEnd) return ''
@@ -556,46 +520,16 @@ export default function LoanDetailsPage() {
                         </p>
                       </div>
                       <div className="flex gap-2">
-                      <Button
-                        onClick={() => {
-                          setIsEditMode(true)
-                          setEditAmount(formatToken(proposal.amount, { displayDecimals: 7 }))
-                        }}
-                        className="flex-1"
-                        disabled={isPaused}
-                      >
-                        Edit Amount
-                      </Button>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" className="flex-1 text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/30" disabled={isPaused}>
-                            Cancel Proposal
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Cancel loan proposal?</DialogTitle>
-                            <DialogDescription>
-                              This will permanently cancel Loan Proposal #{loanId}. It cannot be undone.
-                              You will need to submit a new proposal if you still need a loan.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button variant="outline">Keep proposal</Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                              <Button
-                                variant="destructive"
-                                onClick={handleCancelProposal}
-                                disabled={isCancelling}
-                              >
-                                {isCancelling ? 'Cancelling…' : 'Yes, cancel it'}
-                              </Button>
-                            </DialogClose>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                        <Button
+                          onClick={() => {
+                            setIsEditMode(true)
+                            setEditAmount(formatToken(proposal.amount, { displayDecimals: 7 }))
+                          }}
+                          className="flex-1"
+                          disabled={isPaused}
+                        >
+                          Edit Amount
+                        </Button>
                       </div>
                     </div>
                   ) : (
@@ -672,7 +606,7 @@ export default function LoanDetailsPage() {
                     variant="outline"
                     onClick={handleCancelProposal}
                     disabled={isCancelling || isPaused}
-                    className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/30"
+                    className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
                   >
                     {isCancelling ? 'Cancelling…' : 'Cancel Proposal'}
                   </Button>
@@ -744,9 +678,9 @@ export default function LoanDetailsPage() {
                 <CardHeader>
                   <CardTitle>Approved — awaiting treasury funds</CardTitle>
                   <CardDescription>
-                    Members voted to approve this loan. Any member can disburse it once the
-                    treasury can cover the amount. Terms are re-quoted at disbursement, so the
-                    interest rate may differ from the one shown above.
+                    Members voted to approve this loan. Any member can disburse it once the treasury
+                    can cover the amount. Terms are re-quoted at disbursement, so the interest rate
+                    may differ from the one shown above.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -762,7 +696,7 @@ export default function LoanDetailsPage() {
                         disabled={isFunding || !!disburseDisabledReason()}
                         title={disburseDisabledReason() ?? undefined}
                       >
-                        {isFunding ? 'Funding…' : 'Disburse loan'}
+                        {isFunding ? 'Funding…' : 'Fund now'}
                       </Button>
                     )}
                     <Button asChild variant="outline">
@@ -988,6 +922,7 @@ export default function LoanDetailsPage() {
                             type="text"
                             value={cidInput}
                             onChange={(e) => setCidInput(e.target.value)}
+                            aria-label="IPFS CID or content hash"
                             placeholder="IPFS CID or content hash…"
                             spellCheck={false}
                             aria-invalid={cidInput.trim().length > 0 && !isCidValid}

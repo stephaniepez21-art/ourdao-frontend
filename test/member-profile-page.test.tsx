@@ -23,6 +23,18 @@ vi.mock('@/hooks/useDAO', () => ({
     activity: [],
     isLoading: false,
   }),
+  useMemberOverview: () => ({
+    overview: {
+      member: null,
+      stake: BigInt(0),
+      pendingYield: BigInt(0),
+      isMember: true,
+      name: 'Alice',
+      delegate: null,
+    },
+    isLoading: false,
+    isError: false,
+  }),
   eventLabel: (s: string) => s,
   useVotingWeight: () => ({ votingWeight: 4, isLoading: false, isError: false, refetch: vi.fn() }),
 }))

@@ -11,7 +11,9 @@ import {
   InvokeError,
   TransactionPendingError,
   watchTransaction,
+  type DaoWrite,
   type InvokeResult,
+  type ProposalVote,
 } from '@/lib/dao-client'
 import { queryKeys } from '@/lib/query-keys'
 import { announce } from '@/lib/announce'
@@ -602,11 +604,12 @@ export function useExpireLoanProposal() {
 
 /** Persists the expired state for a treasury proposal whose voting window has closed (#612). */
 export function useExpireTreasuryProposal() {
-  const { run, isPending, isSuccess, error, cancelSignature } = useWriteAction()
+  const { run, isPending, isSuccess, error, address, cancelSignature } = useWriteAction()
   const expireTreasuryProposal = (proposalId: number) =>
     run('Finalizing expired treasury proposal', (w) => w.expireTreasuryProposal(proposalId), [
       queryKeys.treasuryProposal(proposalId),
       queryKeys.treasuryProposalsAll(),
+      queryKeys.userData(address!),
       queryKeys.backendStats(),
     ])
   return { expireTreasuryProposal, isPending, isSuccess, error, cancelSignature }
@@ -620,6 +623,7 @@ export function useCancelLoanProposal() {
       queryKeys.loanProposal(proposalId),
       queryKeys.loanProposalsAll(),
       queryKeys.userData(address!),
+      queryKeys.daoStats(),
       queryKeys.backendStats(),
     ])
   return { cancelLoanProposal, isPending, isSuccess, error, cancelSignature }
@@ -635,6 +639,34 @@ export function useCancelTreasuryProposal() {
       queryKeys.backendStats(),
     ])
   return { cancelTreasuryProposal, isPending, isSuccess, error, cancelSignature }
+}
+
+/** Cancels either a loan or a treasury proposal (convenience wrapper). */
+export function useCancelProposal() {
+  const loan = useCancelLoanProposal()
+  const treasury = useCancelTreasuryProposal()
+  return {
+    cancelLoanProposal: loan.cancelLoanProposal,
+    cancelTreasuryProposal: treasury.cancelTreasuryProposal,
+    isPending: loan.isPending || treasury.isPending,
+    isSuccess: loan.isSuccess || treasury.isSuccess,
+    error: loan.error ?? treasury.error,
+    cancelSignature: loan.cancelSignature ?? treasury.cancelSignature,
+  }
+}
+
+/** Finalizes an expired loan or treasury proposal (convenience wrapper). */
+export function useExpireProposal() {
+  const loan = useExpireLoanProposal()
+  const treasury = useExpireTreasuryProposal()
+  return {
+    expireLoanProposal: loan.expireLoanProposal,
+    expireTreasuryProposal: treasury.expireTreasuryProposal,
+    isPending: loan.isPending || treasury.isPending,
+    isSuccess: loan.isSuccess || treasury.isSuccess,
+    error: loan.error ?? treasury.error,
+    cancelSignature: loan.cancelSignature ?? treasury.cancelSignature,
+  }
 }
 
 /**
@@ -679,41 +711,24 @@ export function useAdminActions() {
   }
 }
 
-// #549 — useDelegateVote: delegate or revoke vote delegation
-export function useDelegateVote() {
-  const { run, isPending, isSuccess, error, cancelSignature } = useWriteAction()
-  const { address } = useWallet()
-  const delegateVote = (delegatee: string) =>
-    run('Delegating vote', (w) => w.delegateVote(delegatee), [
-      queryKeys.delegate(address ?? ''),
-      queryKeys.votingWeight(address ?? ''),
-    ])
-  const revokeVote = () =>
-    address
-      ? run('Revoking vote delegation', (w) => w.delegateVote(address), [
-          queryKeys.delegate(address),
-          queryKeys.votingWeight(address),
-        ])
-      : Promise.resolve()
-  return { delegateVote, revokeVote, isPending, isSuccess, error, cancelSignature }
-export function usePauserActions() {
-  const { run, isPending, isSuccess, error, cancelSignature } = useWriteAction()
-  const setPauser = (pauser: string) =>
-    run('Setting pauser', (w) => w.setPauser(pauser), [queryKeys.daoStats()])
-  const revokePauser = () =>
-    run('Revoking pauser', (w) => w.revokePauser(), [queryKeys.daoStats()])
-  return { setPauser, revokePauser, isPending, isSuccess, error, cancelSignature }
-}
-
 export function usePolicyUpdateActions() {
   const { run, isPending, isSuccess, error, cancelSignature } = useWriteAction()
-  const proposePolicyUpdate = (policy: DaoWrite['proposePolicyUpdate'] extends (p: infer P) => unknown ? P : never) =>
-    run('Proposing policy update', (w) => w.proposePolicyUpdate(policy), [queryKeys.daoStats()])
+  const proposePolicyUpdate = (
+    policy: DaoWrite['proposePolicyUpdate'] extends (p: infer P) => unknown ? P : never
+  ) => run('Proposing policy update', (w) => w.proposePolicyUpdate(policy), [queryKeys.daoStats()])
   const executePolicyUpdate = () =>
     run('Executing policy update', (w) => w.executePolicyUpdate(), [queryKeys.daoStats()])
   const cancelPolicyUpdate = () =>
     run('Cancelling policy update', (w) => w.cancelPolicyUpdate(), [queryKeys.daoStats()])
-  return { proposePolicyUpdate, executePolicyUpdate, cancelPolicyUpdate, isPending, isSuccess, error, cancelSignature }
+  return {
+    proposePolicyUpdate,
+    executePolicyUpdate,
+    cancelPolicyUpdate,
+    isPending,
+    isSuccess,
+    error,
+    cancelSignature,
+  }
 }
 
 /**
@@ -725,8 +740,7 @@ export function usePauserActions() {
   const { run, isPending, isSuccess, error, cancelSignature } = useWriteAction()
   const setPauser = (pauser: string) =>
     run('Setting pauser', (w) => w.setPauser(pauser), [queryKeys.daoStats()])
-  const revokePauser = () =>
-    run('Revoking pauser', (w) => w.revokePauser(), [queryKeys.daoStats()])
+  const revokePauser = () => run('Revoking pauser', (w) => w.revokePauser(), [queryKeys.daoStats()])
   return { setPauser, revokePauser, isPending, isSuccess, error, cancelSignature }
 }
 
@@ -753,5 +767,13 @@ export function useTokenWhitelist() {
       queryKeys.whitelistedTokens(),
       queryKeys.daoStats(),
     ])
-  return { proposeTokenAddition, executeTokenAddition, removeToken, isPending, isSuccess, error, cancelSignature }
+  return {
+    proposeTokenAddition,
+    executeTokenAddition,
+    removeToken,
+    isPending,
+    isSuccess,
+    error,
+    cancelSignature,
+  }
 }

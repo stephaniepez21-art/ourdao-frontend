@@ -219,6 +219,8 @@ describe('ProposalTimeline event rendering (#597)', () => {
     await waitFor(() => {
       expect(within(container).getAllByText('Loan repayment')).toHaveLength(ASSUMED_ROW_CAP)
     })
-    expect(screen.queryByText(/complete|full history|all events|showing all/i)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/complete|full history|all events|showing all/i)
+    ).not.toBeInTheDocument()
   })
 })

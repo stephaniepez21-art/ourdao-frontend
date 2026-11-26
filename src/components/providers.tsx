@@ -50,7 +50,7 @@ export function Providers({ children, nonce }: { children: React.ReactNode; nonc
               },
             }}
           />
-          {children}
+          <LiveEventsProvider>{children}</LiveEventsProvider>
         </WalletProvider>
       </QueryClientProvider>
     </ThemeProvider>

@@ -5,11 +5,7 @@
 // callback: it is a plain stub here, not a mock of a hook or of dao-client.
 // The module has no imports, so nothing else needs stubbing.
 import { describe, expect, it } from 'vitest'
-import {
-  FETCH_CONCURRENCY,
-  PROPOSAL_PAGE_SIZE,
-  fetchProposalPage,
-} from '@/hooks/dao/enumeration'
+import { FETCH_CONCURRENCY, PROPOSAL_PAGE_SIZE, fetchProposalPage } from '@/hooks/dao/enumeration'
 
 type Raw = Record<string, unknown>
 

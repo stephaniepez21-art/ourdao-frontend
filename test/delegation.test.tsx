@@ -63,7 +63,13 @@ describe('useDelegate', () => {
   it('returns the address the member delegated to', async () => {
     mockGetDelegate.mockResolvedValue('GBOB')
     let latest: ReturnType<typeof useDelegate> | undefined
-    renderWithClient(makeClient(), () => useDelegate('GALICE'), (h) => { latest = h })
+    renderWithClient(
+      makeClient(),
+      () => useDelegate('GALICE'),
+      (h) => {
+        latest = h
+      }
+    )
 
     await waitFor(() => expect(latest?.isLoading).toBe(false))
     expect(latest?.delegate).toBe('GBOB')
@@ -73,7 +79,13 @@ describe('useDelegate', () => {
   it('returns null when the member has not delegated', async () => {
     mockGetDelegate.mockResolvedValue(null)
     let latest: ReturnType<typeof useDelegate> | undefined
-    renderWithClient(makeClient(), () => useDelegate('GALICE'), (h) => { latest = h })
+    renderWithClient(
+      makeClient(),
+      () => useDelegate('GALICE'),
+      (h) => {
+        latest = h
+      }
+    )
 
     await waitFor(() => expect(latest?.isLoading).toBe(false))
     expect(latest?.delegate).toBeNull()
@@ -82,7 +94,13 @@ describe('useDelegate', () => {
   it('reports an error and does not fake a delegate when the read fails', async () => {
     mockGetDelegate.mockRejectedValue(new Error('rpc unavailable'))
     let latest: ReturnType<typeof useDelegate> | undefined
-    renderWithClient(makeClient(), () => useDelegate('GALICE'), (h) => { latest = h })
+    renderWithClient(
+      makeClient(),
+      () => useDelegate('GALICE'),
+      (h) => {
+        latest = h
+      }
+    )
 
     await waitFor(() => expect(latest?.isError).toBe(true))
     expect(latest?.delegate).toBeNull()
@@ -98,7 +116,9 @@ describe('useDelegateVote', () => {
     const client = makeClient()
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries')
     let latest: ReturnType<typeof useDelegateVote> | undefined
-    renderWithClient(client, useDelegateVote, (h) => { latest = h })
+    renderWithClient(client, useDelegateVote, (h) => {
+      latest = h
+    })
 
     await act(async () => {
       await latest!.delegate('GBOB')
@@ -116,7 +136,9 @@ describe('useDelegateVote', () => {
     const client = makeClient()
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries')
     let latest: ReturnType<typeof useDelegateVote> | undefined
-    renderWithClient(client, useDelegateVote, (h) => { latest = h })
+    renderWithClient(client, useDelegateVote, (h) => {
+      latest = h
+    })
 
     await act(async () => {
       await latest!.delegate('GBOB').catch(() => undefined)

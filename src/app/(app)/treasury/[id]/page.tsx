@@ -35,8 +35,21 @@ import {
   useToken,
   useDAOStats,
 } from '@/hooks/useDAO'
-import { generateCommitment, storeCommitSalt, loadCommitSalt, parseSaltBackup } from '@/lib/utils'
-import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_AWAITING_FUNDS, IPFS_GATEWAY } from '@/constants'
+import {
+  cn,
+  generateCommitment,
+  storeCommitSalt,
+  loadCommitSalt,
+  parseSaltBackup,
+} from '@/lib/utils'
+import {
+  GOVERNANCE_PERIOD_FALLBACKS,
+  PROPOSAL_STATUS_LABELS,
+  PROPOSAL_STATUS_AWAITING_FUNDS,
+  IPFS_GATEWAY,
+} from '@/constants'
+import { queryKeys } from '@/lib/query-keys'
+import { useNow } from '@/hooks/useNow'
 import toast from 'react-hot-toast'
 
 /** File picker for a salt backup. Shared by both places a salt can be imported. */
@@ -50,7 +63,7 @@ function SaltImportButton({
   return (
     <label
       className={cn(
-        'relative block cursor-pointer rounded focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background',
+        'focus-within:ring-ring focus-within:ring-offset-background relative block cursor-pointer rounded focus-within:ring-2 focus-within:ring-offset-2',
         className
       )}
     >
@@ -247,7 +260,10 @@ export default function TreasuryProposalDetailPage() {
 
   // True when the treasury cannot cover the requested amount — the execute call
   // would fail on-chain with InsufficientTreasury in that case.
-  const isTreasuryShort = !!proposal && treasuryBalance < proposal.amount
+  // A zero balance means the read has not landed (or failed), so treat it as
+  // unknown rather than blocking execution on a fabricated shortfall.
+  const isTreasuryShort =
+    !!proposal && treasuryBalance > BigInt(0) && treasuryBalance < proposal.amount
 
   // Permissionless completion of a withdrawal approved while the treasury was
   // short. Failures are surfaced by the write hook's toast.
@@ -274,8 +290,7 @@ export default function TreasuryProposalDetailPage() {
   const statusLabel =
     PROPOSAL_STATUS_LABELS[proposal.status as keyof typeof PROPOSAL_STATUS_LABELS] || 'Unknown'
   const statsData = queryClient.getQueryData(queryKeys.daoStats()) as
-    | { policy?: Record<string, unknown> }
-    | undefined
+    { policy?: Record<string, unknown> } | undefined
   const policyEditingPeriod = Number(statsData?.policy?.editing_period ?? 0)
   const editingPeriod =
     policyEditingPeriod > 0 ? policyEditingPeriod : GOVERNANCE_PERIOD_FALLBACKS.editingPeriod
@@ -285,11 +300,6 @@ export default function TreasuryProposalDetailPage() {
     proposal.status === 2 &&
     now !== null &&
     Math.floor(now / 1000) <= proposal.creationTime + editingPeriod
-  const executeDisabledReason = isPaused
-    ? 'The DAO is paused — execution is unavailable.'
-    : stats.treasuryBalance < proposal.amount
-      ? 'Treasury balance is too low to execute this withdrawal.'
-      : null
   const canVotePublic = isMember && proposal.status === 2 && !proposal.isPrivate && !hasVoted
   const canCommit = isMember && proposal.status === 2 && proposal.isPrivate && !hasVoted
   // A salt imported from a backup counts too: without this, a member whose
@@ -328,7 +338,7 @@ export default function TreasuryProposalDetailPage() {
               variant="outline"
               onClick={handleCancelProposal}
               disabled={isCancelling || isPaused}
-              className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/30"
+              className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
             >
               {isCancelling ? 'Cancelling…' : 'Cancel Proposal'}
             </Button>
@@ -348,20 +358,19 @@ export default function TreasuryProposalDetailPage() {
           </CardHeader>
           {isMember && (
             <CardContent className="space-y-2">
-              <Button
-                onClick={handleExecute}
-                disabled={isExecuting || isPaused || isTreasuryShort}
-              >
+              <Button onClick={handleExecute} disabled={isExecuting || isPaused || isTreasuryShort}>
                 {isExecuting ? 'Executing…' : 'Execute'}
               </Button>
               {isTreasuryShort && (
-                <p className="text-xs text-muted-foreground">
-                  Treasury balance is below the requested amount — execution will succeed once the
+                <p className="text-muted-foreground text-xs">
+                  Treasury balance is too low to execute this withdrawal — it will succeed once the
                   treasury is topped up.
                 </p>
               )}
               {isPaused && !isTreasuryShort && (
-                <p className="text-xs text-muted-foreground">Execution is unavailable while the DAO is paused.</p>
+                <p className="text-muted-foreground text-xs">
+                  Execution is unavailable while the DAO is paused.
+                </p>
               )}
             </CardContent>
           )}

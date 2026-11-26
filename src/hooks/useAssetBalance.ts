@@ -56,11 +56,10 @@ export function useAssetBalance(tokenId: string | null | undefined): AssetBalanc
     isLoading,
     isError,
     format: (value: bigint | string, options) =>
-      formatToken(value, decimals, options),
+      formatToken(value, { decimals, displayDecimals: options?.displayDecimals }),
     parse: (value: string) => parseToken(value, decimals),
     hasSufficientBalance: (amount: bigint | string) => {
-      const amountBigInt =
-        typeof amount === 'string' ? parseToken(amount, decimals) : amount
+      const amountBigInt = typeof amount === 'string' ? parseToken(amount, decimals) : amount
       return balance >= amountBigInt
     },
     refetch,

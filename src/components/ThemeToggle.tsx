@@ -8,7 +8,11 @@ const subscribe = () => () => {}
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme()
-  const hydrated = useSyncExternalStore(subscribe, () => true, () => false)
+  const hydrated = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false
+  )
 
   // next-themes only knows the resolved (system-aware) theme on the client,
   // after hydration — rendering a theme-dependent icon before that would

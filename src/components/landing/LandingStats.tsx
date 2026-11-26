@@ -43,7 +43,7 @@ export function LandingStats() {
               />
             </div>
             <dt className="text-primary-600 dark:text-primary-400 text-4xl font-bold">
-              {stats.totalMembers}
+              {totalMembers}
             </dt>
             <dd className="text-muted-foreground mt-2 text-base font-medium">Total Members</dd>
           </div>
@@ -53,7 +53,7 @@ export function LandingStats() {
               <Shield className="h-8 w-8 text-green-600 dark:text-green-400" aria-hidden="true" />
             </div>
             <dt className="text-4xl font-bold text-green-600 dark:text-green-400">
-              {stats.activeMembers}
+              {activeMembers}
             </dt>
             <dd className="text-muted-foreground mt-2 text-base font-medium">Active Members</dd>
           </div>
@@ -63,7 +63,7 @@ export function LandingStats() {
               <BarChart3 className="h-8 w-8 text-blue-600 dark:text-blue-400" aria-hidden="true" />
             </div>
             <dt className="text-4xl font-bold text-blue-600 dark:text-blue-400">
-              {token.format(stats.treasuryBalance)}
+              {token.format(treasuryBalance)}
             </dt>
             <dd className="text-muted-foreground mt-2 text-base font-medium">Treasury Balance</dd>
           </div>
@@ -76,7 +76,7 @@ export function LandingStats() {
               />
             </div>
             <dt className="text-4xl font-bold text-orange-600 dark:text-orange-400">
-              {stats.totalLoans}
+              {totalLoans}
             </dt>
             <dd className="text-muted-foreground mt-2 text-base font-medium">Loans Funded</dd>
           </div>

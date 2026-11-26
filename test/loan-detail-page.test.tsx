@@ -113,6 +113,7 @@ vi.mock('@/lib/backend', async (importOriginal) => ({
 describe('LoanDetailsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(window.confirm).mockReturnValue(true)
     mockDisburseApprovedLoan.mockResolvedValue({ hash: 'tx-fund', returnValue: null })
     mockCancelLoanProposal.mockResolvedValue({ hash: 'tx-cancel', returnValue: null })
     mockIsMember.mockResolvedValue(true)
@@ -507,7 +508,9 @@ describe('LoanDetailsPage', () => {
       const button = await screen.findByRole('button', { name: /Fund now/i })
       expect(button).toBeDisabled()
       expect(
-        screen.getAllByRole('status').some((el) => /Treasury balance is too low/i.test(el.textContent ?? ''))
+        screen
+          .getAllByRole('status')
+          .some((el) => /Treasury balance is too low/i.test(el.textContent ?? ''))
       ).toBe(true)
     })
 

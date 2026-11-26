@@ -39,7 +39,9 @@ describe('dao-client timeout utilities', () => {
   it('clears the timer once a call resolves, so no timer stays pending (#575)', async () => {
     vi.useFakeTimers()
     try {
-      await expect(withTimeout(Promise.resolve('ok'), WRITE_TIMEOUT_MS, 'write')).resolves.toBe('ok')
+      await expect(withTimeout(Promise.resolve('ok'), WRITE_TIMEOUT_MS, 'write')).resolves.toBe(
+        'ok'
+      )
       expect(vi.getTimerCount()).toBe(0)
     } finally {
       vi.useRealTimers()

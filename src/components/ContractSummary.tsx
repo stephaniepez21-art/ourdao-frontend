@@ -43,32 +43,28 @@ export function ContractSummary() {
   }
 
   return (
-    <div className="border rounded-lg p-6 bg-white space-y-4">
+    <div className="space-y-4 rounded-lg border bg-white p-6">
       <h2 className="text-lg font-semibold">Contract Summary</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
           <div className="text-sm text-gray-600">Contract Version</div>
-          <div className="text-lg font-semibold font-mono">
-            {contractInfo.version}
-          </div>
+          <div className="font-mono text-lg font-semibold">{contractInfo.version}</div>
         </div>
 
         <div>
           <div className="text-sm text-gray-600">Admin Address</div>
-          <div className="text-sm font-mono truncate">{contractInfo.admin}</div>
+          <div className="truncate font-mono text-sm">{contractInfo.admin}</div>
         </div>
 
         <div>
           <div className="text-sm text-gray-600">Treasury Address</div>
-          <div className="text-sm font-mono truncate">
-            {contractInfo.treasury}
-          </div>
+          <div className="truncate font-mono text-sm">{contractInfo.treasury}</div>
         </div>
 
         <div>
           <div className="text-sm text-gray-600">Token Address</div>
-          <div className="text-sm font-mono truncate">{contractInfo.token}</div>
+          <div className="truncate font-mono text-sm">{contractInfo.token}</div>
         </div>
 
         <div>
@@ -80,25 +76,4 @@ export function ContractSummary() {
       </div>
     </div>
   )
-}
-
-export function useContractVersion() {
-  const { data: contractInfo, isLoading } = useQuery({
-    queryKey: queryKeys.contractInfo(),
-    enabled: isContractConfigured(),
-    queryFn: async () => {
-      const info = await daoRead.getContractInfo()
-      return info || null
-    },
-    retry: 2,
-    staleTime: Infinity,
-    gcTime: Infinity,
-  })
-
-  return {
-    version: contractInfo?.version || null,
-    isLoading,
-    matches: (expectedVersion: string) =>
-      contractInfo?.version === expectedVersion,
-  }
 }

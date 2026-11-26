@@ -1,56 +1,41 @@
-import { useState, useEffect, useCallback } from 'react'
-import { backend, type AuditLogEntry } from '@/lib/backend'
-import toast from 'react-hot-toast'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { useCallback } from 'react'
+import { backend } from '@/lib/backend'
+
+export interface AdminAuditLogEntry {
+  id: string | number
+  action: string
+  actor: string | null
+  target?: string | null
+  timestamp: number | string
+}
+
+const fetchAdminLog = backend.getAdminLog as unknown as (
+  page: number,
+  pageSize: number
+) => Promise<AdminAuditLogEntry[]>
 
 export function useAdminAuditLog(pageSize = 10) {
-  const [entries, setEntries] = useState<AuditLogEntry[]>
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState<boolean>(true)
-  const [page, setPage] = useState<number>(1)
+  const { data, isLoading, error, hasNextPage, fetchNextPage, refetch } = useInfiniteQuery({
+    queryKey: ['adminAuditLog', pageSize],
+    queryFn: ({ pageParam }) => fetchAdminLog(pageParam, pageSize),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _pages, lastPageParam) =>
+      lastPage.length === pageSize ? lastPageParam + 1 : undefined,
+  })
 
-  const fetchLog = useCallback(async (pageNum: number, append = false) => {
-    try {
-      setLoading(true)
-      setError(null)
-      const data = await backend.getAdminLog(pageNum, pageSize)
-      if (Array.isArray(data)) {
-        setEntries(prev => append && prev ? [...prev, ...data] : data)
-        setHasMore(data.length === pageSize)
-      } else {
-        setEntries([])
-        setHasMore(false)
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load audit log'
-      setError(msg)
-      toast.error(msg)
-    } finally {
-      setLoading(false)
-    }
-  }, [pageSize])
-
-  useEffect(() => {
-    fetchLog(1, false)
-  }, [fetchLog])
+  const entries = data?.pages.flat() ?? []
 
   const loadMore = useCallback(() => {
-    if (loading || !hasMore) return
-    const nextPage = page + 1
-    setPage(nextPage)
-    fetchLog(nextPage, true)
-  }, [loading, hasMore, page, fetchLog])
-
-  const refetch = useCallback(() => {
-    setPage(1)
-    fetchLog(1, false)
-  }, [fetchLog])
+    if (!hasNextPage || isLoading) return
+    void fetchNextPage()
+  }, [fetchNextPage, hasNextPage, isLoading])
 
   return {
     entries,
-    loading,
-    error,
-    hasMore,
+    loading: isLoading,
+    error: error ? (error instanceof Error ? error.message : 'Failed to load audit log') : null,
+    hasMore: !!hasNextPage,
     loadMore,
     refetch,
   }

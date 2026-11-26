@@ -331,7 +331,8 @@ describe('backend fetch wrappers', () => {
     })
 
     const mockChallengeThen = (response: Partial<Response>) =>
-      vi.mocked(fetch)
+      vi
+        .mocked(fetch)
         .mockResolvedValueOnce(jsonResponse({ nonce: NONCE }))
         .mockResolvedValueOnce({ ok: true, status: 200, ...response } as Response)
 
@@ -424,9 +425,17 @@ describe('backend fetch wrappers', () => {
       const secondNonce = 'c'.repeat(64)
       vi.mocked(fetch)
         .mockResolvedValueOnce(jsonResponse({ nonce: NONCE }))
-        .mockResolvedValueOnce({ ok: true, status: 200, json: () => Promise.resolve({ eventId: 1, status: 'resolved' }) } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ eventId: 1, status: 'resolved' }),
+        } as Response)
         .mockResolvedValueOnce(jsonResponse({ nonce: secondNonce }))
-        .mockResolvedValueOnce({ ok: true, status: 200, json: () => Promise.resolve({ eventId: 2, status: 'resolved' }) } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ eventId: 2, status: 'resolved' }),
+        } as Response)
 
       await backend.reEvaluateFailedEvent(1, signer)
       await backend.reEvaluateFailedEvent(2, signer)

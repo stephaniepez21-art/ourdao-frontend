@@ -27,12 +27,12 @@ export function AssetSelector({
 
   return (
     <div className="relative">
-      <label className="block text-sm font-medium mb-2">{label}</label>
+      <label className="mb-2 block text-sm font-medium">{label}</label>
 
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled || isLoading}
-        className="w-full px-4 py-2 border rounded-lg bg-white text-left disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full rounded-lg border bg-white px-4 py-2 text-left disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isLoading ? (
           <span className="text-gray-500">Loading assets...</span>
@@ -46,7 +46,7 @@ export function AssetSelector({
       </button>
 
       {isOpen && !isLoading && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-10">
+        <div className="absolute top-full right-0 left-0 z-10 mt-1 rounded-lg border bg-white shadow-lg">
           {tokens.length === 0 ? (
             <div className="p-4 text-gray-500">No assets available</div>
           ) : (
@@ -57,7 +57,7 @@ export function AssetSelector({
                   onChange(token.tokenId)
                   setIsOpen(false)
                 }}
-                className="w-full px-4 py-2 text-left hover:bg-gray-100 border-b last:border-b-0"
+                className="w-full border-b px-4 py-2 text-left last:border-b-0 hover:bg-gray-100"
               >
                 <div className="font-medium">{token.symbol}</div>
                 <div className="text-sm text-gray-600">{token.name}</div>

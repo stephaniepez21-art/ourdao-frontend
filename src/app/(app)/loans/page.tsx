@@ -264,7 +264,9 @@ function LoanProposalCard({
 
 export default function LoansPage() {
   const userData = useUserData()
+  const { isPaused } = useDAOStats()
   const { voteOnProposal, isPending } = useVoting()
+  const { expireLoanProposal, isPending: isExpiring } = useExpireProposal()
   const { proposals, isLoading, hasMore, loadMore, isLoadingMore, hasErrors, isError, refetch } =
     useLoanProposals()
   useAnnounceLoad('Loan proposals', isLoading, isError)

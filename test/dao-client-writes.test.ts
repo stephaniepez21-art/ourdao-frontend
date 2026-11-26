@@ -174,8 +174,59 @@ describe('daoWrite — method name and ScVal argument types per entrypoint', () 
     ['pause', (w) => w.pause(), 'pause', ['scvAddress']],
     ['unpause', (w) => w.unpause(), 'unpause', ['scvAddress']],
     ['delegateVote', (w) => w.delegateVote(OTHER), 'delegate_vote', ['scvAddress', 'scvAddress']],
-    ['cancelLoanProposal', (w) => w.cancelLoanProposal(9), 'cancel_loan_proposal', ['scvAddress', 'scvU32']],
-    ['cancelTreasuryProposal', (w) => w.cancelTreasuryProposal(10), 'cancel_treasury_proposal', ['scvAddress', 'scvU32']],
+    [
+      'cancelLoanProposal',
+      (w) => w.cancelLoanProposal(9),
+      'cancel_loan_proposal',
+      ['scvAddress', 'scvU32'],
+    ],
+    [
+      'cancelTreasuryProposal',
+      (w) => w.cancelTreasuryProposal(10),
+      'cancel_treasury_proposal',
+      ['scvAddress', 'scvU32'],
+    ],
+    ['expireLoanProposal', (w) => w.expireLoanProposal(11), 'expire_loan_proposal', ['scvU32']],
+    [
+      'expireTreasuryProposal',
+      (w) => w.expireTreasuryProposal(12),
+      'expire_treasury_proposal',
+      ['scvU32'],
+    ],
+    ['setPauser', (w) => w.setPauser(OTHER), 'set_pauser', ['scvAddress', 'scvAddress']],
+    ['revokePauser', (w) => w.revokePauser(), 'revoke_pauser', ['scvAddress']],
+    [
+      'proposePolicyUpdate',
+      (w) => w.proposePolicyUpdate(policy),
+      'propose_policy_update',
+      ['scvAddress', 'scvMap'],
+    ],
+    [
+      'executePolicyUpdate',
+      (w) => w.executePolicyUpdate(),
+      'execute_policy_update',
+      ['scvAddress'],
+    ],
+    ['cancelPolicyUpdate', (w) => w.cancelPolicyUpdate(), 'cancel_policy_update', ['scvAddress']],
+    [
+      'proposeTokenAddition',
+      (w) => w.proposeTokenAddition(OTHER),
+      'propose_token_addition',
+      ['scvAddress', 'scvAddress'],
+    ],
+    [
+      'executeTokenAddition',
+      (w) => w.executeTokenAddition(OTHER),
+      'execute_token_addition',
+      ['scvAddress', 'scvAddress'],
+    ],
+    ['removeToken', (w) => w.removeToken(OTHER), 'remove_token', ['scvAddress', 'scvAddress']],
+    [
+      'voteBatch',
+      (w) => w.voteBatch([{ proposal_id: 1, vote: true }]),
+      'vote_batch',
+      ['scvAddress', 'scvVec'],
+    ],
   ]
 
   it.each(cases)(

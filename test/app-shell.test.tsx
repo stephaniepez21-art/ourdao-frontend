@@ -49,7 +49,7 @@ vi.mock('@/lib/stellar', async () => {
   const actual = await vi.importActual<typeof import('@/lib/stellar')>('@/lib/stellar')
   return {
     ...actual,
-    contractIdStatus: () => mockContractConfigured ? 'valid' : 'unconfigured',
+    contractIdStatus: () => (mockContractConfigured ? 'valid' : 'unconfigured'),
     isContractConfigured: () => mockContractConfigured,
   }
 })
@@ -108,16 +108,26 @@ describe('AppShell navigation', () => {
   afterEach(() => vi.clearAllMocks())
 
   it('exposes all connection states through a single polite status region', async () => {
-    renderWithProviders(<LiveEventsProvider><AppShell>content</AppShell></LiveEventsProvider>)
+    renderWithProviders(
+      <LiveEventsProvider>
+        <AppShell>content</AppShell>
+      </LiveEventsProvider>
+    )
     const region = screen.getByText('Offline').closest('[role="status"]')
     expect(region).toHaveAttribute('aria-live', 'polite')
 
     const stream = vi.mocked(openEventStream).mock.calls[0][0]
-    await act(async () => { stream.onStatus('reconnecting') })
+    await act(async () => {
+      stream.onStatus('reconnecting')
+    })
     expect(region).toHaveTextContent('Reconnecting')
-    await act(async () => { stream.onStatus('connected') })
+    await act(async () => {
+      stream.onStatus('connected')
+    })
     expect(region).toHaveTextContent('Live updates: Live')
-    await act(async () => { stream.onStatus('offline') })
+    await act(async () => {
+      stream.onStatus('offline')
+    })
     expect(region).toHaveTextContent('Offline')
   })
 

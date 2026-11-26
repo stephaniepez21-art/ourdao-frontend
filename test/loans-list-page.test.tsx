@@ -44,8 +44,7 @@ const mockGetEvents = vi.fn()
 vi.mock('@/hooks/useNow', async () => {
   const React = await vi.importActual<typeof import('react')>('react')
   return {
-    useNow: () =>
-      React.useSyncExternalStore(mockNow.subscribe, mockNow.getSnapshot, () => null),
+    useNow: () => React.useSyncExternalStore(mockNow.subscribe, mockNow.getSnapshot, () => null),
   }
 })
 
@@ -86,6 +85,7 @@ vi.mock('@/lib/dao-client', () => ({
   },
   daoWrite: () => ({
     voteOnLoanProposal: vi.fn().mockResolvedValue({ hash: 'tx', returnValue: null }),
+    expireLoanProposal: (...a: unknown[]) => mockExpireLoanProposal(...a),
   }),
 }))
 

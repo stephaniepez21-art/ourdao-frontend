@@ -41,7 +41,8 @@ export function buildCspWithNonce(nonce: string): string {
   // unless they are configured explicitly through the NEXT_PUBLIC_* variables (#577).
   const isDevelopment = process.env.NODE_ENV !== 'production'
   const rpcUrl = process.env.NEXT_PUBLIC_SOROBAN_RPC_URL || 'https://soroban-testnet.stellar.org'
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || (isDevelopment ? 'http://localhost:4000' : '')
+  const backendUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL || (isDevelopment ? 'http://localhost:4000' : '')
   const ipfsGateways = (process.env.NEXT_PUBLIC_IPFS_GATEWAY || '')
     .split(',')
     .map((g) => g.trim())

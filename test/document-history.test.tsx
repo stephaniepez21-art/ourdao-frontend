@@ -33,7 +33,11 @@ describe('DocumentHistory (#564)', () => {
   it('shows the CID without an "Open" link when no IPFS gateway is configured', async () => {
     delete process.env.NEXT_PUBLIC_IPFS_GATEWAY
     vi.resetModules()
-    mockUseDocumentHistory.mockReturnValue({ history: mockHistory, isLoading: false, isError: false })
+    mockUseDocumentHistory.mockReturnValue({
+      history: mockHistory,
+      isLoading: false,
+      isError: false,
+    })
     const { DocumentHistory } = await import('@/components/DocumentHistory')
 
     render(<DocumentHistory kind="loan" proposalId={1} />)
@@ -46,7 +50,11 @@ describe('DocumentHistory (#564)', () => {
     process.env.NEXT_PUBLIC_IPFS_GATEWAY =
       'https://ipfs.example.org/ipfs/, https://backup.example.org/ipfs/'
     vi.resetModules()
-    mockUseDocumentHistory.mockReturnValue({ history: mockHistory, isLoading: false, isError: false })
+    mockUseDocumentHistory.mockReturnValue({
+      history: mockHistory,
+      isLoading: false,
+      isError: false,
+    })
     const { DocumentHistory } = await import('@/components/DocumentHistory')
 
     render(<DocumentHistory kind="loan" proposalId={1} />)
@@ -99,7 +107,11 @@ describe('DocumentHistory table states (#598)', () => {
   })
 
   it('renders the attached-by address, CID, ledger and a formatted date for each row', async () => {
-    mockUseDocumentHistory.mockReturnValue({ history: mockHistory, isLoading: false, isError: false })
+    mockUseDocumentHistory.mockReturnValue({
+      history: mockHistory,
+      isLoading: false,
+      isError: false,
+    })
     const { DocumentHistory } = await import('@/components/DocumentHistory')
 
     render(<DocumentHistory kind="loan" proposalId={1} />)
@@ -118,10 +130,7 @@ describe('DocumentHistory table states (#598)', () => {
   })
 
   it('renders one row per history item', async () => {
-    const two = [
-      mockHistory[0],
-      { ...mockHistory[0], cid: 'bafybeicid2', ledger: 12346 },
-    ]
+    const two = [mockHistory[0], { ...mockHistory[0], cid: 'bafybeicid2', ledger: 12346 }]
     mockUseDocumentHistory.mockReturnValue({ history: two, isLoading: false, isError: false })
     const { DocumentHistory } = await import('@/components/DocumentHistory')
 

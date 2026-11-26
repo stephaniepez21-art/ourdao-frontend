@@ -45,7 +45,7 @@ describe('useRequireMember (#566, #593)', () => {
           isConnected: false,
           isMember: false,
         }),
-      }),
+      })
     )
 
     expect(mockReplace).not.toHaveBeenCalled()
@@ -60,7 +60,7 @@ describe('useRequireMember (#566, #593)', () => {
           isConnected: false,
           isMember: false,
         }),
-      }),
+      })
     )
 
     expect(mockReplace).toHaveBeenCalledWith('/')
@@ -76,7 +76,7 @@ describe('useRequireMember (#566, #593)', () => {
           isConnected: true,
           isMember: false,
         }),
-      }),
+      })
     )
 
     expect(mockReplace).toHaveBeenCalledWith('/register')
@@ -91,7 +91,7 @@ describe('useRequireMember (#566, #593)', () => {
           isMember: false,
           isError: true,
         }),
-      }),
+      })
     )
 
     expect(mockReplace).not.toHaveBeenCalled()
@@ -107,7 +107,7 @@ describe('useRequireMember (#566, #593)', () => {
           isConnected: false,
           isMember: false,
         }),
-      }),
+      })
     )
 
     expect(mockReplace).toHaveBeenCalledWith('/')
@@ -121,7 +121,7 @@ describe('useRequireMember (#566, #593)', () => {
           isConnected: true,
           isMember: false,
         }),
-      }),
+      })
     )
 
     expect(mockReplace).toHaveBeenCalledWith('/register')
@@ -135,7 +135,7 @@ describe('useRequireMember (#566, #593)', () => {
           isConnected: true,
           isMember: true,
         }),
-      }),
+      })
     )
 
     expect(mockReplace).not.toHaveBeenCalled()
@@ -155,8 +155,8 @@ describe('useRedirectIfMember (#566, #593)', () => {
         makeUserData({
           isConnected: true,
           isMember: true,
-        }),
-      ),
+        })
+      )
     )
 
     expect(mockReplace).toHaveBeenCalledWith('/dashboard')
@@ -172,8 +172,8 @@ describe('useRedirectIfMember (#566, #593)', () => {
           isLoading: true,
           isConnected: true,
           isMember: true,
-        }),
-      ),
+        })
+      )
     )
 
     expect(mockReplace).not.toHaveBeenCalled()
@@ -187,8 +187,8 @@ describe('useRedirectIfMember (#566, #593)', () => {
         makeUserData({
           isConnected: true,
           isMember: true,
-        }),
-      ),
+        })
+      )
     )
 
     expect(mockReplace).toHaveBeenCalledWith('/dashboard')
@@ -202,8 +202,8 @@ describe('useRedirectIfMember (#566, #593)', () => {
         makeUserData({
           isConnected: true,
           isMember: false,
-        }),
-      ),
+        })
+      )
     )
 
     expect(mockReplace).not.toHaveBeenCalled()

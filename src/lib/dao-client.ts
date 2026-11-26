@@ -579,7 +579,7 @@ export const daoRead = {
 
   // #644 — single overview read for a member profile page.
   getMemberOverview: async (
-    address: string,
+    address: string
   ): Promise<{
     member: Raw<Member> | null
     stake: bigint | null
@@ -594,19 +594,61 @@ export const daoRead = {
       read<'get_pending_yield', bigint>('get_pending_yield', { member: address }),
       read<'is_member', boolean>('is_member', { address }),
       read<'name_of', string>('name_of', { owner: address }),
-      read<'get_delegate', string>('get_delegate', { member: address }),
+      readUnbound<string>('get_delegate', new Address(address).toScVal()),
     ])
     return { member, stake, pendingYield, isMember, name, delegate }
   },
 
-  // #549 — delegation reads.
-  getDelegate: (member: string): Promise<string | null> =>
-    read('get_delegate', { member }),
-  getVotingWeight: (member: string): Promise<bigint | null> =>
-    read('get_voting_weight', { member }),
-  getDaoSummary: (): Promise<Record<string, unknown> | null> => read('get_dao_summary'),
-  getMemberOverview: (member: string): Promise<Record<string, unknown> | null> =>
-    read('get_member_overview', { member }),
+  // Whitelisted token addresses the DAO currently accepts (#623), enriched
+  // with the SEP-41 metadata the asset pickers need.
+  getWhitelistedTokens: async (): Promise<Array<{
+    tokenId: string
+    symbol: string
+    decimals: number
+    name: string
+  }> | null> => {
+    const ids = await readUnbound<string[]>('get_whitelisted_tokens')
+    if (ids == null) return null
+    return Promise.all(
+      ids.map(async (tokenId) => {
+        const [symbol, decimals, name] = await Promise.all([
+          readContract<string>(tokenId, 'symbol'),
+          readContract<number>(tokenId, 'decimals'),
+          readContract<string>(tokenId, 'name'),
+        ])
+        return {
+          tokenId,
+          symbol: symbol ?? 'TOKEN',
+          decimals: typeof decimals === 'number' ? decimals : 7,
+          name: name ?? '',
+        }
+      })
+    )
+  },
+
+  // Deployment metadata shown on the contract summary card (#556).
+  getContractInfo: async (): Promise<{
+    version: string
+    admin: string
+    treasury: string
+    token: string
+    createdAt: number
+  } | null> => {
+    const [version, admins, treasury, token, createdAt] = await Promise.all([
+      read<'get_version', string>('get_version'),
+      read<'get_admins', string[]>('get_admins'),
+      readUnbound<string>('get_treasury'),
+      read<'get_token', string>('get_token'),
+      readUnbound<number>('get_created_at'),
+    ])
+    return {
+      version: version ?? '',
+      admin: admins?.[0] ?? '',
+      treasury: treasury ?? '',
+      token: token ?? '',
+      createdAt: Number(createdAt ?? 0),
+    }
+  },
 }
 
 /** Standard SEP-41 token contract reads. */
@@ -713,8 +755,6 @@ export function daoWrite(address: string, signXDR: (xdr: string) => Promise<stri
         proposal_id: proposalId,
         support,
       }),
-    expireTreasuryProposal: (proposalId: number) =>
-      send('expire_treasury_proposal', { proposal_id: proposalId }),
 
     stake: (amount: bigint | number) => send('stake', { member: address, amount: BigInt(amount) }),
     unstake: (amount: bigint | number) =>
@@ -724,8 +764,7 @@ export function daoWrite(address: string, signXDR: (xdr: string) => Promise<stri
 
     // #549 — delegate this member's vote to `delegatee`; pass the connected
     // wallet address as `delegatee` to revoke (self-delegation clears it).
-    delegateVote: (delegatee: string) =>
-      send('delegate_vote', { delegator: address, delegatee }),
+    delegateVote: (delegatee: string) => send('delegate_vote', { delegator: address, delegatee }),
 
     commitTreasuryVote: (proposalId: number, commitment: Uint8Array) =>
       send('commit_treasury_vote', {
@@ -749,19 +788,6 @@ export function daoWrite(address: string, signXDR: (xdr: string) => Promise<stri
         content_hash: bytes(contentHash),
       }),
 
-    // Not in the pinned generated bindings yet; encoded by hand (#601, #605).
-    delegateVote: (delegatee: string) =>
-      sendUnbound(
-        'delegate_vote',
-        new Address(address).toScVal(),
-        new Address(delegatee).toScVal()
-      ),
-    // A proposer may withdraw their own proposal during its editing window (#605).
-    cancelLoanProposal: (proposalId: number) =>
-      sendUnbound('cancel_loan_proposal', new Address(address).toScVal(), xdr.ScVal.scvU32(proposalId)),
-    cancelTreasuryProposal: (proposalId: number) =>
-      sendUnbound('cancel_treasury_proposal', new Address(address).toScVal(), xdr.ScVal.scvU32(proposalId)),
-
     // Admin-only entrypoints. The contract itself enforces the admin check
     // (`util::require_admin`) — `address` here is the connected wallet acting
     // as `caller`, not necessarily an admin; a non-admin call simply fails
@@ -770,8 +796,7 @@ export function daoWrite(address: string, signXDR: (xdr: string) => Promise<stri
     removeAdmin: (admin: string) => send('remove_admin', { caller: address, admin }),
     setConsensusThreshold: (threshold: number) =>
       send('set_consensus_threshold', { caller: address, threshold }),
-    setLoanPolicy: (policy: LoanPolicy) =>
-      send('set_loan_policy', { caller: address, policy }),
+    setLoanPolicy: (policy: LoanPolicy) => send('set_loan_policy', { caller: address, policy }),
     // Timelocked policy changes (#192). Proposing again replaces any pending
     // update; execute fails until the timelock has passed.
     proposePolicyUpdate: (policy: LoanPolicy) =>
@@ -785,16 +810,22 @@ export function daoWrite(address: string, signXDR: (xdr: string) => Promise<stri
     setPauser: (pauser: string) => send('set_pauser', { caller: address, pauser }),
     revokePauser: () => send('revoke_pauser', { caller: address }),
 
-    // Governed loan-policy update flow (#553)
-
-    // Permissionless keeper call: persists the expired transition for a loan
-    // proposal whose voting window has passed without reaching quorum (#612).
-    expireLoanProposal: (proposalId: number) =>
-      send('expire_loan_proposal', { proposal_id: proposalId }),
-
-    // Permissionless keeper call: same as above but for treasury proposals (#612).
-    expireTreasuryProposal: (proposalId: number) =>
-      send('expire_treasury_proposal', { proposal_id: proposalId }),
+    // Token whitelist controls (#623). Propose starts a timelock; execute
+    // finalizes the addition once it expires; remove is immediate.
+    proposeTokenAddition: (token: string) =>
+      sendUnbound(
+        'propose_token_addition',
+        new Address(address).toScVal(),
+        new Address(token).toScVal()
+      ),
+    executeTokenAddition: (token: string) =>
+      sendUnbound(
+        'execute_token_addition',
+        new Address(address).toScVal(),
+        new Address(token).toScVal()
+      ),
+    removeToken: (token: string) =>
+      sendUnbound('remove_token', new Address(address).toScVal(), new Address(token).toScVal()),
 
     // Batch-vote on multiple loan proposals in a single transaction (#613).
     // The contract applies each vote atomically and returns on the first error,
@@ -806,23 +837,6 @@ export function daoWrite(address: string, signXDR: (xdr: string) => Promise<stri
       }
       return send('vote_batch', { voter: address, votes })
     },
-
-    // Cancel a loan proposal while it is still in the editing phase (#609).
-    // Uses invoke directly because cancel_loan_proposal is not yet in the
-    // generated bindings spec; args match the contract's (borrower, proposal_id).
-    cancelLoanProposal: (proposalId: number) =>
-      invoke(address, signXDR, 'cancel_loan_proposal',
-        new Address(address).toScVal(),
-        xdr.ScVal.scvU32(proposalId),
-      ),
-
-    // Cancel a treasury proposal while it is still in the editing window (#609).
-    // Same approach as cancelLoanProposal above.
-    cancelTreasuryProposal: (proposalId: number) =>
-      invoke(address, signXDR, 'cancel_treasury_proposal',
-        new Address(address).toScVal(),
-        xdr.ScVal.scvU32(proposalId),
-      ),
   }
 }
 

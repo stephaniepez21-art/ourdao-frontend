@@ -51,15 +51,20 @@ const POLICY: LoanPolicy = {
   min_interest_rate: 100,
   min_membership_duration: BigInt(2_592_000),
   quorum_bps: 5_000,
+  treasury_threshold: 0,
   voting_period: BigInt(259_200),
 }
 
 /** The single invoked contract call carried by a signed transaction. */
 function invokedCall(signedXdr: string) {
   const tx = TransactionBuilder.fromXDR(signedXdr, 'Test SDF Network ; September 2015')
-  const op = (tx as unknown as {
-    operations: Array<{ func: { invokeContract: { functionName: { toString(): string }; args: xdr.ScVal[] } } }>
-  }).operations[0]
+  const op = (
+    tx as unknown as {
+      operations: Array<{
+        func: { invokeContract: { functionName: { toString(): string }; args: xdr.ScVal[] } }
+      }>
+    }
+  ).operations[0]
   const call = op.func.invokeContract
   return { method: call.functionName.toString(), args: call.args }
 }
@@ -108,7 +113,9 @@ describe('policy-update write wrappers', () => {
 
   it('maps TimelockNotExpired (#76) to a readable message, never a raw code', async () => {
     mockSendTransaction.mockResolvedValue({ status: 'ERROR', hash: 'h', errorResult: '[#76]' })
-    const err = await daoWrite(WALLET, signXDR).executePolicyUpdate().catch((e: Error) => e)
+    const err = await daoWrite(WALLET, signXDR)
+      .executePolicyUpdate()
+      .catch((e: Error) => e)
     expect(err).toBeInstanceOf(Error)
     expect((err as Error).message).toBe(
       'The timelock has not expired yet — this change cannot be applied until the delay has passed.'
@@ -142,7 +149,12 @@ describe('daoRead.getPendingPolicyUpdate', () => {
   })
 
   it('returns null when the simulation yields no return value', async () => {
-    mockSimulateTransaction.mockResolvedValue({ id: '1', latestLedger: 1, events: [], _parsed: true })
+    mockSimulateTransaction.mockResolvedValue({
+      id: '1',
+      latestLedger: 1,
+      events: [],
+      _parsed: true,
+    })
     await expect(daoRead.getPendingPolicyUpdate()).resolves.toBeNull()
   })
 

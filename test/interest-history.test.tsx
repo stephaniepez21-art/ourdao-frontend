@@ -84,10 +84,13 @@ describe('InterestHistory component (Issue #398)', () => {
     fireEvent.click(olderBtn)
 
     await waitFor(() => {
-      expect(backend.getInterestDistributions).toHaveBeenCalledWith({
-        before: 190,
-        limit: 2,
-      }, { signal: expect.any(AbortSignal) })
+      expect(backend.getInterestDistributions).toHaveBeenCalledWith(
+        {
+          before: 190,
+          limit: 2,
+        },
+        { signal: expect.any(AbortSignal) }
+      )
     })
   })
 })

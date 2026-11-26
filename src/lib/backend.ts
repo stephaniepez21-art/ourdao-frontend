@@ -24,11 +24,13 @@ import {
   AuthError,
   buildAuthHeader,
   requestSignedAuth,
+  serializePerAddress,
   type AuthFailureReason,
   type AuthSigner,
   type SignedAuth,
 } from './backend-auth'
 import { BACKEND_URL, isBackendConfigured } from './backend-config'
+import { logger } from './logger'
 import type { paths } from './generated/backend-api'
 
 export { BACKEND_URL, isBackendConfigured }
@@ -146,7 +148,9 @@ export const isBackendStatsHistoryDay = (value: unknown): value is BackendStatsH
   )
 }
 
-export const isBackendStatsHistoryResponse = (value: unknown): value is { data: BackendStatsHistoryDay[] } => {
+export const isBackendStatsHistoryResponse = (
+  value: unknown
+): value is { data: BackendStatsHistoryDay[] } => {
   if (!isRecord(value)) return false
   return Array.isArray(value.data) && value.data.every(isBackendStatsHistoryDay)
 }
@@ -192,9 +196,7 @@ export interface FailedEventReEvaluationResult {
 export const isFailedEventReEvaluationResult = (
   value: unknown
 ): value is FailedEventReEvaluationResult =>
-  isRecord(value) &&
-  (isNumber(value.eventId) || isString(value.eventId)) &&
-  isString(value.status)
+  isRecord(value) && (isNumber(value.eventId) || isString(value.eventId)) && isString(value.status)
 
 export type FailedEventResolution = 'resolved' | 'ignored'
 
@@ -210,8 +212,7 @@ export interface FailedEventBatchResolveResult {
 
 export const isFailedEventBatchResolveResult = (
   value: unknown
-): value is FailedEventBatchResolveResult =>
-  isRecord(value) && isNumber(value.resolved)
+): value is FailedEventBatchResolveResult => isRecord(value) && isNumber(value.resolved)
 
 /** The backend rejects batches above this; fail before spending a signature. */
 export const MAX_FAILED_EVENTS_PER_BATCH = 500
@@ -731,9 +732,7 @@ async function signedPost<T>(
     } catch (err) {
       throw err instanceof AuthError
         ? new BackendError(err.message, err.status)
-        : new BackendError(
-            err instanceof Error ? err.message : 'Could not obtain a signature.'
-          )
+        : new BackendError(err instanceof Error ? err.message : 'Could not obtain a signature.')
     }
 
     let res: Response
@@ -763,7 +762,8 @@ async function signedPost<T>(
 
     const payload: unknown = await res.json().catch(() => null)
     if (!res.ok && !acceptResponse?.(res.status, payload)) {
-      const detail = isRecord(payload) && isString(payload.error) && payload.error ? payload.error : null
+      const detail =
+        isRecord(payload) && isString(payload.error) && payload.error ? payload.error : null
       throw new BackendError(detail ?? `Backend responded ${res.status}`, res.status)
     }
     if (!validate(payload)) {
@@ -908,8 +908,7 @@ export const backend = {
         undefined,
         isFailedEventReEvaluationResult,
         options,
-        (status, body) =>
-          status === 422 && isRecord(body) && body.status === 'still_failing'
+        (status, body) => status === 422 && isRecord(body) && body.status === 'still_failing'
       )
     ),
 
@@ -923,7 +922,11 @@ export const backend = {
       signedPost<FailedEventBatchResolveResult>(
         '/api/admin/failed-events/batch-resolve',
         signer,
-        { ids: input.ids, resolution: input.resolution, ...(input.note ? { note: input.note } : {}) },
+        {
+          ids: input.ids,
+          resolution: input.resolution,
+          ...(input.note ? { note: input.note } : {}),
+        },
         isFailedEventBatchResolveResult,
         options
       )
@@ -995,21 +998,6 @@ export const backend = {
       options
     ),
 
-  /** Re-evaluate a single quarantined/failed event. Requires a signed
-   *  StellarSignature header (#555). */
-  reevaluateFailedEvent: (
-    id: number | string,
-    signer: AuthSigner,
-    options?: BackendRequestOptions | AbortSignal
-  ) => post(`/api/admin/failed-events/${encodeURIComponent(String(id))}/re-evaluate`, signer, options),
-
-  /** Batch-resolve all quarantined/failed events. Requires a signed
-   *  StellarSignature header (#555). */
-  batchResolveFailedEvents: (
-    signer: AuthSigner,
-    options?: BackendRequestOptions | AbortSignal
-  ) => post(`/api/admin/failed-events/batch-resolve`, signer, options),
-
   /** Daily loan aggregates for a historical view (#555). */
   getStatsHistory: (options?: BackendRequestOptions | AbortSignal) =>
     get<{ data: BackendStatsHistoryDay[] }>(
@@ -1042,7 +1030,12 @@ export interface OpenEventStreamOptions {
   channels?: readonly string[]
 }
 
-const STREAM_EVENT_TYPES: readonly BackendStreamEventType[] = ['heartbeat', 'notification', 'error', 'resync']
+const STREAM_EVENT_TYPES: readonly BackendStreamEventType[] = [
+  'heartbeat',
+  'notification',
+  'error',
+  'resync',
+]
 
 export const isBackendStreamEvent = (value: unknown): value is BackendStreamEvent => {
   if (!isRecord(value)) return false
@@ -1051,7 +1044,8 @@ export const isBackendStreamEvent = (value: unknown): value is BackendStreamEven
   if (value.channel !== undefined && !isString(value.channel)) return false
   if (value.payload !== undefined && !isRecord(value.payload)) return false
   // A resync must say whether a change may have been missed; the caller refetches on it.
-  if (value.type === 'resync' && !(isRecord(value.payload) && isBoolean(value.payload.missed))) return false
+  if (value.type === 'resync' && !(isRecord(value.payload) && isBoolean(value.payload.missed)))
+    return false
   return true
 }
 
@@ -1063,11 +1057,16 @@ export const isBackendStreamEvent = (value: unknown): value is BackendStreamEven
  * Returns a close function. When the backend is not configured (preview mode)
  * nothing is opened and the returned close is a no-op.
  */
-export function openEventStream({ onEvent, onStatus, channels }: OpenEventStreamOptions): () => void {
+export function openEventStream({
+  onEvent,
+  onStatus,
+  channels,
+}: OpenEventStreamOptions): () => void {
   if (!isBackendConfigured() || typeof EventSource === 'undefined') return () => {}
 
   const base = process.env.NEXT_PUBLIC_BACKEND_URL || ''
-  const query = channels && channels.length > 0 ? `?channels=${encodeURIComponent(channels.join(','))}` : ''
+  const query =
+    channels && channels.length > 0 ? `?channels=${encodeURIComponent(channels.join(','))}` : ''
   const source = new EventSource(`${base}/api/stream${query}`)
 
   source.onopen = () => onStatus?.('open')
@@ -1083,11 +1082,11 @@ export function openEventStream({ onEvent, onStatus, channels }: OpenEventStream
     try {
       parsed = JSON.parse(body)
     } catch (cause) {
-      console.warn(`[backend] dropped ${type} event: body is not JSON`, cause)
+      logger.warn(`[backend] dropped ${type} event: body is not JSON`, cause)
       return
     }
     if (!isBackendStreamEvent(parsed) || parsed.type !== type) {
-      console.warn(`[backend] dropped ${type} event: unexpected shape`, parsed)
+      logger.warn(`[backend] dropped ${type} event: unexpected shape`, parsed)
       return
     }
     onEvent(parsed)

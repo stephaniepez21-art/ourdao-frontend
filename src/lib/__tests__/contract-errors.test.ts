@@ -26,6 +26,8 @@ describe('delegation error codes', () => {
     [79, 'InvalidDelegation'],
   ])('gives %i (%s) a specific message', (code) => {
     expect(CONTRACT_ERROR_MESSAGES[code]).toBeDefined()
-    expect(formatContractError(`HostError: Error(Contract, [#${code}])`)).toBe(CONTRACT_ERROR_MESSAGES[code])
+    expect(formatContractError(`HostError: Error(Contract, [#${code}])`)).toBe(
+      CONTRACT_ERROR_MESSAGES[code]
+    )
   })
 })

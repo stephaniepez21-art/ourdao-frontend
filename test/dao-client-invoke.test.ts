@@ -5,7 +5,7 @@
 // interaction) opts back into the real Node environment — same reasoning as
 // dao-client-sc.test.ts.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Account, Keypair, StrKey } from '@stellar/stellar-sdk'
+import { Account, Keypair, StrKey, nativeToScVal } from '@stellar/stellar-sdk'
 
 const mockGetAccount = vi.fn()
 const mockPrepareTransaction = vi.fn()
@@ -221,6 +221,19 @@ describe('invoke()', () => {
   })
 })
 
+describe('error types', () => {
+  it('InvokeError defaults retryable to false', () => {
+    expect(new InvokeError('something broke').retryable).toBe(false)
+  })
+
+  it('TransactionPendingError falls back to a generic explorer hint without a URL', () => {
+    const error = new TransactionPendingError('hash-no-url', null)
+
+    expect(error.url).toBeNull()
+    expect(error.message).toContain('Check its status on a Stellar explorer.')
+  })
+})
+
 describe('watchTransaction() — late confirmation reconciliation (#309)', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -264,6 +277,31 @@ describe('watchTransaction() — late confirmation reconciliation (#309)', () =>
     expect(outcome).toBe('failed')
     expect(onFailed).toHaveBeenCalledWith('FAILED')
     expect(onConfirmed).not.toHaveBeenCalled()
+  })
+
+  it('passes the decoded return value to onConfirmed when there is one', async () => {
+    mockGetTransaction.mockResolvedValue({
+      status: 'SUCCESS',
+      returnValue: nativeToScVal(42),
+    })
+    const onConfirmed = vi.fn()
+
+    const watch = watchTransaction('hash-value', { onConfirmed, timeoutMs: 60_000 })
+    await vi.advanceTimersByTimeAsync(2_000)
+
+    expect(await watch).toBe('confirmed')
+    expect(onConfirmed).toHaveBeenCalledWith(BigInt(42))
+  })
+
+  it('treats an unnamed non-NOT_FOUND status as a failure instead of polling forever', async () => {
+    mockGetTransaction.mockResolvedValue({ status: 'SOMETHING_ELSE' })
+    const onFailed = vi.fn()
+
+    const watch = watchTransaction('hash-odd', { onFailed, timeoutMs: 60_000 })
+    await vi.advanceTimersByTimeAsync(2_000)
+
+    expect(await watch).toBe('failed')
+    expect(onFailed).toHaveBeenCalledWith('SOMETHING_ELSE')
   })
 
   it('survives a transient RPC error and keeps polling', async () => {

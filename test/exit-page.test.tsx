@@ -55,6 +55,13 @@ describe('ExitPage (#565)', () => {
       isError: false,
       isMember: true,
       hasActiveLoan: false,
+      member: {
+        address: 'GALICE',
+        status: 1,
+        shareBalance: BigInt(100_0000000),
+        joinedAt: 1_700_000_000,
+        totalContributed: BigInt(100_0000000),
+      },
     }
   })
 
